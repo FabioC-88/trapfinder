@@ -1,0 +1,20 @@
+<div class="dnd5e-gm-toolkit-manager">
+  <fieldset>
+    <legend>{{localize "DND5E_GM_TOOLKIT.manager.appTitle"}}</legend>
+    {{#each tools as |tool|}}
+      <div class="form-group dnd5e-gm-toolkit-tool">
+        <label class="checkbox">
+          <input type="checkbox" name="{{tool.id}}" {{checked tool.enabled}} />
+          {{tool.title}}
+        </label>
+        <p class="hint">{{tool.hint}}</p>
+      </div>
+    {{/each}}
+  </fieldset>
+  <footer class="form-footer">
+    <button type="submit">
+      <i class="fa-solid fa-save"></i>
+      {{localize "SETTINGS.Save"}}
+    </button>
+  </footer>
+</div>

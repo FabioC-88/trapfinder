@@ -1,0 +1,45 @@
+{
+  "DND5E_GM_TOOLKIT": {
+    "manager": {
+      "menuName": "GM Toolkit",
+      "menuLabel": "Manage GM Toolkit",
+      "menuHint": "Open the GM Toolkit manager to enable or disable individual tools for this world.",
+      "appTitle": "GM Toolkit",
+      "reloadNotice": "GM Toolkit updated. Reload Foundry so every connected client applies the change."
+    },
+    "tools": {
+      "trapDetection": {
+        "title": "Trap Detection (passive Perception)",
+        "hint": "Draw a Region at a trap's true location, add the 'Trap Detection' behavior to set its DC and detection range, and get a private message whenever a PC's token comes within range - passive Perception vs the DC decides if they notice it. Notifies once per PC per trap.",
+        "spotted": "{name} notices something suspicious nearby (passive Perception meets/beats DC {dc}).",
+        "notSpotted": "{name} passes near a hidden trap without noticing it (DC {dc})."
+      },
+      "lockpicking": {
+        "title": "Lockpicking",
+        "hint": "Clicking a locked door as GM offers to attempt picking it with the currently controlled/selected PC's Thieves' Tools instead of the default silent 'locked' behavior. The lock's DC is set once per door and remembered.",
+        "noActor": "No controlled/selected token to attempt the lockpick with.",
+        "setDcTitle": "Set Lock DC",
+        "setDcHint": "This door's lock difficulty hasn't been set yet. Set it once - it will be remembered for future attempts.",
+        "confirm": "Confirm",
+        "rollFlavor": "Lockpicking Attempt (DC {dc})",
+        "success": "{name} picks the lock successfully. The door is now unlocked.",
+        "failure": "{name} fails to pick the lock."
+      }
+    },
+    "trapDetection": {
+      "behavior": {
+        "label": "Trap Detection",
+        "FIELDS": {
+          "dc": {
+            "label": "Detection DC",
+            "hint": "The passive Perception a PC needs to meet or beat to notice this trap."
+          },
+          "range": {
+            "label": "Detection Range",
+            "hint": "Distance (in scene units) from this Region's footprint within which a nearby PC triggers the check."
+          }
+        }
+      }
+    }
+  }
+}

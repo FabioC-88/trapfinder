@@ -1,0 +1,45 @@
+{
+  "DND5E_GM_TOOLKIT": {
+    "manager": {
+      "menuName": "GM Toolkit",
+      "menuLabel": "Gestisci GM Toolkit",
+      "menuHint": "Apri il gestore del GM Toolkit per attivare o disattivare i singoli strumenti di questo mondo.",
+      "appTitle": "GM Toolkit",
+      "reloadNotice": "GM Toolkit aggiornato. Ricarica Foundry affinché tutti i client connessi applichino la modifica."
+    },
+    "tools": {
+      "trapDetection": {
+        "title": "Rilevamento Trappole (Percezione passiva)",
+        "hint": "Disegna una Region nella vera posizione di una trappola, aggiungi il comportamento 'Trap Detection' per impostare CD e raggio di rilevamento, e ricevi un messaggio privato quando un token PG entra nel raggio - la percezione passiva contro la CD decide se se ne accorge. Avvisa una sola volta per PG per trappola.",
+        "spotted": "{name} nota qualcosa di sospetto nei paraggi (percezione passiva pari o superiore a CD {dc}).",
+        "notSpotted": "{name} passa vicino a una trappola nascosta senza accorgersene (CD {dc})."
+      },
+      "lockpicking": {
+        "title": "Scasso Serrature",
+        "hint": "Cliccando da DM su una porta chiusa a chiave si offre di tentare lo scasso con i Grimaldelli del PG attualmente controllato/selezionato, invece del comportamento silenzioso di default. La CD della serratura si imposta una volta per porta e viene ricordata.",
+        "noActor": "Nessun token controllato/selezionato con cui tentare lo scasso.",
+        "setDcTitle": "Imposta CD Serratura",
+        "setDcHint": "La difficoltà di questa serratura non è ancora stata impostata. Impostala una volta - verrà ricordata per i tentativi futuri.",
+        "confirm": "Conferma",
+        "rollFlavor": "Tentativo di Scasso (CD {dc})",
+        "success": "{name} scassina la serratura con successo. La porta ora è sbloccata.",
+        "failure": "{name} non riesce a scassinare la serratura."
+      }
+    },
+    "trapDetection": {
+      "behavior": {
+        "label": "Rilevamento Trappola",
+        "FIELDS": {
+          "dc": {
+            "label": "CD Rilevamento",
+            "hint": "La percezione passiva che un PG deve eguagliare o superare per accorgersi di questa trappola."
+          },
+          "range": {
+            "label": "Raggio di Rilevamento",
+            "hint": "Distanza (in unità di scena) dalla sagoma di questa Region entro cui un PG vicino fa scattare il controllo."
+          }
+        }
+      }
+    }
+  }
+}

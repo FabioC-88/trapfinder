@@ -1,0 +1,57 @@
+{
+  "id": "dnd5e-gm-toolkit",
+  "title": "GM Toolkit (dnd5e)",
+  "description": "Strumenti/automazioni per condurre la sessione col sistema dnd5e: rilevamento trappole via percezione passiva e scasso serrature. Non sono house rules (varianti opzionali di regole), sono utility per il DM.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Fabio"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4.0.0"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "reason": "Se installato, il modulo lo usa per intercettare in modo sicuro il click sulle porte chiuse a chiave (funziona comunque anche senza, tramite uno shim incluso)."
+      }
+    ]
+  },
+  "esmodules": [
+    "lib/libwrapper-shim.js",
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/gm-toolkit.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "it",
+      "name": "Italiano",
+      "path": "lang/it.json"
+    }
+  ],
+  "url": "https://github.com/FabioC-88/dnd5e-gm-toolkit",
+  "manifest": "https://github.com/FabioC-88/dnd5e-gm-toolkit/releases/latest/download/module.json",
+  "download": "",
+  "readme": "https://github.com/FabioC-88/dnd5e-gm-toolkit/blob/main/README.md",
+  "license": "LICENSE"
+}
