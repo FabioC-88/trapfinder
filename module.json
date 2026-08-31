@@ -2,7 +2,7 @@
   "id": "trapfinder",
   "title": "Trapfinder (dnd5e)",
   "description": "Strumenti/automazioni per condurre la sessione col sistema dnd5e: rilevamento trappole via percezione passiva e scasso serrature. Non sono house rules (varianti opzionali di regole), sono utility per il DM.",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "authors": [
     {
       "name": "Fabio"
@@ -51,7 +51,7 @@
   ],
   "url": "https://github.com/FabioC-88/trapfinder",
   "manifest": "https://github.com/FabioC-88/trapfinder/releases/latest/download/module.json",
-  "download": "",
+  "download": "https://github.com/FabioC-88/trapfinder/releases/download/v0.0.1/trapfinder-v0.0.1.zip",
   "readme": "https://github.com/FabioC-88/trapfinder/blob/main/README.md",
   "license": "LICENSE"
 }
