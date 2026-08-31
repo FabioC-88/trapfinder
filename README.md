@@ -3,7 +3,10 @@
 Modulo Foundry VTT (v14+, `dnd5e` richiesto) con strumenti/automazioni per condurre la sessione —
 **non house rules** (nessuna variante di regola opzionale: per quelle vedi il modulo separato
 [dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules)). Ogni strumento vive nel proprio
-file, si attiva/disattiva dal "GM Toolkit" (raggiungibile da **Configure Settings**).
+file, e si attiva/disattiva direttamente da **Configure Settings** (due semplici interruttori sotto
+"Trapfinder" — niente popup dedicato, sono solo due). **Dopo aver attivato/disattivato uno strumento,
+Foundry ti chiederà di ricaricare**: è necessario, alcune registrazioni (status/comportamenti/wrapper)
+avvengono una sola volta all'avvio.
 
 ## Installazione
 
@@ -41,9 +44,11 @@ usato per lo scasso, da validare al tavolo prima di estenderlo.
 ## Aggiungere un nuovo strumento
 
 1. Crea `tools/<nome>/index.js` che esporta `{ id, titleKey, hintKey, default: false, register(moduleId), onReady(moduleId) }`.
-   - `register(moduleId)` registra il toggle on/off (`game.settings.register`, `config: false`) e,
-     se serve toccare `CONFIG.*` prima che Foundry inizializzi le impostazioni (es. status effect,
-     Region Behavior custom), lo fa qui — non in `onReady()`.
+   - `register(moduleId)` registra il toggle on/off (`game.settings.register`, `config: true`,
+     `requiresReload: true` — le registrazioni sotto girano una sola volta per caricamento pagina,
+     quindi un toggle a runtime richiede un reload) e, se serve toccare `CONFIG.*` prima che Foundry
+     inizializzi le impostazioni (es. status effect, Region Behavior custom), lo fa qui — non in
+     `onReady()`.
    - `onReady(moduleId)` aggancia gli hook/API necessari, solo se il toggle è attivo.
 2. Aggiungi le chiavi di traduzione in `lang/en.json` e `lang/it.json`.
 3. Importa e registra il nuovo strumento in `tools/index.js`:
@@ -60,12 +65,9 @@ Non serve nessun bundler: Foundry carica i moduli ES direttamente, quindi il reg
 ```
 module.json                        manifest Foundry
 scripts/main.js                    hook "init"/"ready": registra tutti gli strumenti
-scripts/gm-toolkit-manager.js      app Settings Menu con i toggle
 tools/<nome>/index.js              uno strumento per cartella
 lib/libwrapper-shim.js             shim ufficiale di libWrapper (MIT, vendored da ruipin/fvtt-lib-wrapper)
 lang/{en,it}.json                  traduzioni
-templates/gm-toolkit-manager.hbs   markup dell'app Settings Menu
-styles/gm-toolkit.css              stile minimo dell'app
 ```
 
 ## Release

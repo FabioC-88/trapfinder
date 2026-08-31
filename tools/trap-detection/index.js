@@ -13,9 +13,13 @@ export default {
       name: this.titleKey,
       hint: this.hintKey,
       scope: "world",
-      config: false,
+      config: true,
       type: Boolean,
-      default: this.default
+      default: this.default,
+      // CONFIG.RegionBehavior below is only (re)populated once per page load, at "init" - toggling
+      // this mid-session without a reload would leave the behavior type missing from the Region
+      // config sheet until the next refresh, so Foundry needs to prompt for one.
+      requiresReload: true
     });
 
     // CONFIG.RegionBehavior must be populated before the "i18nInit" hook runs (Foundry uses it to

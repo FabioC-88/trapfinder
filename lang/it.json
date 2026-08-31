@@ -1,12 +1,5 @@
 {
   "DND5E_GM_TOOLKIT": {
-    "manager": {
-      "menuName": "GM Toolkit",
-      "menuLabel": "Gestisci GM Toolkit",
-      "menuHint": "Apri il gestore del GM Toolkit per attivare o disattivare i singoli strumenti di questo mondo.",
-      "appTitle": "GM Toolkit",
-      "reloadNotice": "GM Toolkit aggiornato. Ricarica Foundry affinché tutti i client connessi applichino la modifica."
-    },
     "tools": {
       "trapDetection": {
         "title": "Rilevamento Trappole (Percezione passiva)",

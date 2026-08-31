@@ -18,9 +18,13 @@ export default {
       name: this.titleKey,
       hint: this.hintKey,
       scope: "world",
-      config: false,
+      config: true,
       type: Boolean,
-      default: this.default
+      default: this.default,
+      // The libWrapper registration below only runs once per page load, at "ready" - toggling this
+      // mid-session without a reload wouldn't wrap/unwrap the door click handler until the next
+      // refresh, so Foundry needs to prompt for one.
+      requiresReload: true
     });
   },
 

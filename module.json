@@ -34,9 +34,6 @@
     "lib/libwrapper-shim.js",
     "scripts/main.js"
   ],
-  "styles": [
-    "styles/gm-toolkit.css"
-  ],
   "languages": [
     {
       "lang": "en",
