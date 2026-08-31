@@ -1,4 +1,4 @@
-# GM Toolkit (dnd5e)
+# Trapfinder (dnd5e)
 
 Modulo Foundry VTT (v14+, `dnd5e` richiesto) con strumenti/automazioni per condurre la sessione —
 **non house rules** (nessuna variante di regola opzionale: per quelle vedi il modulo separato
@@ -10,7 +10,7 @@ file, si attiva/disattiva dal "GM Toolkit" (raggiungibile da **Configure Setting
 In Foundry, **Add-on Modules > Install Module**, incolla il manifest:
 
 ```
-https://github.com/FabioC-88/dnd5e-gm-toolkit/releases/latest/download/module.json
+https://github.com/FabioC-88/trapfinder/releases/latest/download/module.json
 ```
 
 Poi attiva il modulo nel mondo (richiede il sistema `dnd5e`). Se hai anche

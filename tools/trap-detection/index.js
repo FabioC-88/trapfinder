@@ -1,6 +1,6 @@
 import TrapDetectionRegionBehaviorType from "./trap-detection-region-behavior.js";
 
-const TYPE_ID = "dnd5e-gm-toolkit.trapDetection";
+const TYPE_ID = "trapfinder.trapDetection";
 
 export default {
   id: "trap-detection",

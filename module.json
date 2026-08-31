@@ -1,6 +1,6 @@
 {
-  "id": "dnd5e-gm-toolkit",
-  "title": "GM Toolkit (dnd5e)",
+  "id": "trapfinder",
+  "title": "Trapfinder (dnd5e)",
   "description": "Strumenti/automazioni per condurre la sessione col sistema dnd5e: rilevamento trappole via percezione passiva e scasso serrature. Non sono house rules (varianti opzionali di regole), sono utility per il DM.",
   "version": "0.1.0",
   "authors": [
@@ -49,9 +49,9 @@
       "path": "lang/it.json"
     }
   ],
-  "url": "https://github.com/FabioC-88/dnd5e-gm-toolkit",
-  "manifest": "https://github.com/FabioC-88/dnd5e-gm-toolkit/releases/latest/download/module.json",
+  "url": "https://github.com/FabioC-88/trapfinder",
+  "manifest": "https://github.com/FabioC-88/trapfinder/releases/latest/download/module.json",
   "download": "",
-  "readme": "https://github.com/FabioC-88/dnd5e-gm-toolkit/blob/main/README.md",
+  "readme": "https://github.com/FabioC-88/trapfinder/blob/main/README.md",
   "license": "LICENSE"
 }

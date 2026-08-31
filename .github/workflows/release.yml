@@ -21,7 +21,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           TAG="${GITHUB_REF_NAME}"
-          ZIP_NAME="dnd5e-gm-toolkit-${TAG}.zip"
+          ZIP_NAME="trapfinder-${TAG}.zip"
 
           jq --arg v "$VERSION" \
              --arg url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ZIP_NAME}" \
@@ -37,7 +37,7 @@ jobs:
 
       - name: Create Zip Archive
         run: |
-          ZIP_NAME="dnd5e-gm-toolkit-${GITHUB_REF_NAME}.zip"
+          ZIP_NAME="trapfinder-${GITHUB_REF_NAME}.zip"
           zip -r "$ZIP_NAME" module.json scripts tools lib lang templates styles README.md LICENSE
 
       - name: Create GitHub Release
@@ -45,6 +45,6 @@ jobs:
         with:
           files: |
             module.json
-            dnd5e-gm-toolkit-${{ github.ref_name }}.zip
+            trapfinder-${{ github.ref_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
