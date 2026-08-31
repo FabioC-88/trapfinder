@@ -16,6 +16,10 @@ export default class TrapDetectionRegionBehaviorType extends foundry.data.region
   static defineSchema() {
     const { NumberField } = foundry.data.fields;
     return {
+      // Declared even though _handleRegionEvent is never implemented/used - the one real
+      // reference implementation found for a custom dnd5e RegionBehaviorType always includes
+      // this field, and omitting it is an unverified deviation from the only known-working example.
+      events: this._createEventsField({ events: [] }),
       dc: new NumberField({ required: true, integer: true, min: 0, initial: 15 }),
       range: new NumberField({ required: true, min: 0, initial: 10 })
     };
