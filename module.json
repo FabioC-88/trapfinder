@@ -34,6 +34,11 @@
     "lib/libwrapper-shim.js",
     "scripts/main.js"
   ],
+  "documentTypes": {
+    "RegionBehavior": {
+      "trapDetection": {}
+    }
+  },
   "languages": [
     {
       "lang": "en",

@@ -22,11 +22,18 @@ export default {
       requiresReload: true
     });
 
+    // Unconditional (not gated behind the setting toggle): module.json declares this type under
+    // documentTypes.RegionBehavior so Foundry's own type list (which is what actually drives the
+    // "Add Behavior" dropdown - CONFIG.RegionBehavior.dataModels alone does not, verified by
+    // comparing it against the dropdown's real rendered <select> options) always includes it,
+    // regardless of the setting. Since the type is always selectable either way, registering the
+    // class conditionally would let a GM add the behavior while the tool is off and hit a broken
+    // data model with no class behind it - so this stays unconditional, and only the actual
+    // detection hook in onReady() below is gated by the setting.
+    //
     // CONFIG.RegionBehavior must be populated before the "i18nInit" hook runs (Foundry uses it to
     // pre-localize/prepare behavior type sheets), so this happens here in register() (init), not
     // in onReady() - same timing constraint already hit for the leader status in dnd5e-house-rules.
-    if (!game.settings.get(moduleId, this.id)) return;
-
     CONFIG.RegionBehavior.dataModels[TYPE_ID] = TrapDetectionRegionBehaviorType;
     CONFIG.RegionBehavior.typeIcons[TYPE_ID] = "fa-solid fa-triangle-exclamation";
     // Without an explicit typeLabels entry, the "Add Behavior" type dropdown has nothing to
