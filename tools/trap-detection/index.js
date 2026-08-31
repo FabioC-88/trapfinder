@@ -29,6 +29,11 @@ export default {
 
     CONFIG.RegionBehavior.dataModels[TYPE_ID] = TrapDetectionRegionBehaviorType;
     CONFIG.RegionBehavior.typeIcons[TYPE_ID] = "fa-solid fa-triangle-exclamation";
+    // Without an explicit typeLabels entry, the "Add Behavior" type dropdown has nothing to
+    // display for this entry and silently omits it (no error) - verified against several real,
+    // working modules (pf2e-visioner, warhammer-dbc, Deathmarch-Witcher-TRPG) that all set this
+    // explicitly alongside dataModels/typeIcons, unlike the one reference this was first modeled on.
+    CONFIG.RegionBehavior.typeLabels[TYPE_ID] = "DND5E_GM_TOOLKIT.trapDetection.behavior.label";
     Hooks.once("i18nInit", () => foundry.helpers.Localization.localizeDataModel(TrapDetectionRegionBehaviorType));
   },
 
