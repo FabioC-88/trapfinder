@@ -114,15 +114,28 @@ i candidati vicini a un osservatore e descriverli in forma normalizzata:
   key,            // identità stabile, per la deduplica
   skill,          // "prc" | "inv"
   dc,             // number
-  point,          // {x, y} per la misura e per il test di visuale
+  point,          // {x, y} usato per la distanza
+  sightPoint,     // {x, y} usato per il test di visuale
   range,          // in unità di scena
-  message,        // testo personalizzato, o null
-  fallbackKey,    // chiave i18n di default per questo tipo di soggetto
+  message,        // testo personalizzato, o null — usato solo in caso di riuscita
+  spottedKey,     // chiave i18n di default alla riuscita
+  missedKey,      // chiave i18n al fallimento, sempre
   requiresSight,  // boolean
   hasSeen(),      // → boolean
   markSeen()      // → Promise
 }
 ```
+
+Tre dettagli di questa forma, decisi scrivendo il piano di implementazione:
+
+- **`point` e `sightPoint` sono distinti.** Servono alle porte segrete, dove il bersaglio è il muro
+  stesso e il punto da cui misurare la visuale non può coincidere con quello da cui si misura la
+  distanza. Per ogni altro soggetto sono lo stesso punto.
+- **Due chiavi i18n invece di una.** Riuscita e fallimento hanno testi diversi, e una sola chiave
+  di ripiego non bastava.
+- **`message` vale solo alla riuscita.** Al fallimento si usa sempre il testo generico: il testo
+  personalizzato descrive ciò che si nota, e chi fallisce non nota niente — mostrarglielo
+  rivelerebbe esattamente quello che la CD doveva proteggere.
 
 `hasSeen`/`markSeen` sono chiusure già legate alla **coppia osservatore/bersaglio**: è la sorgente
 a costruirle, perché solo lei sa dove vive lo stato (flag sul behavior, sul muro o sul token). Il
