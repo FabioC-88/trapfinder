@@ -91,6 +91,11 @@
         "needsHidden": "{name} is marked as Hiding but its token is still visible to players, so it will not be detected. Hide the token too.",
         "needsStatus": "{name} is hidden from players but has no Hiding status, so it will not be detected. Add the status if it is meant to be lying in wait."
       }
+    },
+    "surprise": {
+      "title": "Surprised by the Ambush?",
+      "hint": "These PCs did not notice at least one hidden creature on this scene. Uncheck anyone who should not be surprised, then confirm. Apply this before rolling initiative - dnd5e grants the disadvantage at roll time.",
+      "confirm": "Mark as Surprised"
     }
   }
 }

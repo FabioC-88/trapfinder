@@ -91,6 +91,11 @@
         "needsHidden": "{name} è marcato come Nascosto ma il suo token è ancora visibile ai giocatori, quindi non verrà rilevato. Nascondi anche il token.",
         "needsStatus": "{name} è nascosto ai giocatori ma non ha lo status Nascosto, quindi non verrà rilevato. Aggiungi lo status se è in agguato."
       }
+    },
+    "surprise": {
+      "title": "Sorpresi dall'imboscata?",
+      "hint": "Questi PG non hanno individuato almeno una creatura nascosta su questa scena. Togli la spunta a chi non deve essere sorpreso, poi conferma. Applicalo prima di tirare l'iniziativa: dnd5e assegna lo svantaggio al momento del tiro.",
+      "confirm": "Marca come sorpresi"
     }
   }
 }

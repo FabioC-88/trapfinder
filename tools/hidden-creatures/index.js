@@ -4,6 +4,7 @@ import { reportDetection } from "../../core/notify.js";
 import { FLAGS, SETTINGS } from "../../scripts/constants.js";
 import { HIDING_STATUS, collectCreatureDetectables, isHiddenCreature, tokenCenter } from "./sources.js";
 import { registerMarkerGuard } from "./marker-guard.js";
+import { registerSurprisePrompt } from "./surprise.js";
 
 /**
  * Passive Perception against a hidden creature's passive Stealth.
@@ -80,6 +81,7 @@ export default {
     });
 
     registerMarkerGuard();
+    registerSurprisePrompt(moduleId);
   }
 };
 
