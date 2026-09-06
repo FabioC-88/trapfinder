@@ -1,0 +1,26 @@
+.trapfinder-monster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+}
+
+.trapfinder-monster-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trapfinder-monster-list th,
+.trapfinder-monster-list td {
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.trapfinder-monster-list tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.trapfinder-monster-list .monster-filter {
+  width: 100%;
+}
