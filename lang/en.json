@@ -3,9 +3,7 @@
     "tools": {
       "trapDetection": {
         "title": "Trap Detection (passive Perception)",
-        "hint": "Draw a Region at a trap's true location, add the 'Trap Detection' behavior to set its DC and detection range, and get a private message whenever a PC's token comes within range - passive Perception vs the DC decides if they notice it. Notifies once per PC per trap.",
-        "spotted": "{name} notices something suspicious nearby (passive Perception meets/beats DC {dc}).",
-        "notSpotted": "{name} passes near a hidden trap without noticing it (DC {dc})."
+        "hint": "Draw a Region at a trap's true location, add the 'Trap Detection' behavior to set its DC and detection range, and get a private message whenever a PC's token comes within range - passive Perception vs the DC decides if they notice it. Notifies once per PC per trap."
       },
       "lockpicking": {
         "title": "Lockpicking",
@@ -53,6 +51,8 @@
       }
     },
     "passiveDetection": {
+      "spotted": "{name} notices something suspicious nearby (passive check meets/beats DC {dc}).",
+      "notSpotted": "{name} passes close to something hidden without noticing it (DC {dc}).",
       "skills": {
         "prc": "Passive Perception",
         "inv": "Passive Investigation"

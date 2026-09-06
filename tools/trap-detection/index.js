@@ -1,3 +1,8 @@
+import { runDetection } from "../../core/detection.js";
+import { isSightBlocked, sceneDistance } from "../../core/geometry.js";
+import { reportDetection } from "../../core/notify.js";
+import { SETTINGS } from "../../scripts/constants.js";
+import { collectRegionDetectables } from "./sources.js";
 import TrapDetectionRegionBehaviorType from "./trap-detection-region-behavior.js";
 
 const TYPE_ID = "trapfinder.trapDetection";
@@ -47,7 +52,7 @@ export default {
   onReady(moduleId) {
     if (!game.settings.get(moduleId, this.id)) return;
 
-    Hooks.on("moveToken", (tokenDocument) => {
+    Hooks.on("moveToken", async (tokenDocument) => {
       if (!game.user.isGM) return;
 
       const actor = tokenDocument.actor;
@@ -57,53 +62,26 @@ export default {
       if (!scene) return;
 
       const gridSize = scene.grid.size;
-      const center = {
-        x: tokenDocument.x + (tokenDocument.width * gridSize) / 2,
-        y: tokenDocument.y + (tokenDocument.height * gridSize) / 2
+      const observerCenter = {
+        x: tokenDocument.x + ((tokenDocument.width * gridSize) / 2),
+        y: tokenDocument.y + ((tokenDocument.height * gridSize) / 2)
       };
 
-      for (const region of scene.regions) {
-        const behavior = region.behaviors.find(b => (b.type === TYPE_ID) && !b.disabled);
-        if (!behavior) continue;
+      const detectables = collectRegionDetectables({
+        scene, observerCenter, actor, moduleId, typeId: TYPE_ID
+      });
+      if (!detectables.length) return;
 
-        const notifiedActorIds = behavior.getFlag(moduleId, "notifiedActorIds") ?? [];
-        if (notifiedActorIds.includes(actor.id)) continue;
-
-        const distance = distanceToRegionBounds(center, region.bounds);
-        if (distance > behavior.system.range) continue;
-
-        const passive = actor.system.skills?.prc?.passive ?? 0;
-        const spotted = passive >= behavior.system.dc;
-        postTrapDetectionMessage(actor, spotted, behavior.system.dc);
-
-        behavior.setFlag(moduleId, "notifiedActorIds", [...notifiedActorIds, actor.id]);
-      }
+      await runDetection({
+        observer: actor,
+        detectables,
+        measure: (point) => sceneDistance(observerCenter, point),
+        isSightBlocked: (point) => isSightBlocked(observerCenter, point),
+        report: ({ observer, detectable, spotted }) => reportDetection({
+          moduleId, observer, detectable, spotted,
+          toastEnabled: game.settings.get(moduleId, SETTINGS.screenAlert)
+        })
+      });
     });
   }
 };
-
-/**
- * Distance (in scene units) from a pixel point to a Region's bounding box - clamps the point to
- * the box, then measures from the clamped point (0 if the point is already inside the box).
- * A bounding-box approximation, not exact-shape-boundary distance: no built-in or third-party
- * reference for exact point-to-arbitrary-region-shape distance was found, and the extra margin
- * this approximation adds near the corners of an ellipse/polygon is a few feet at most - fine for
- * a detection buffer.
- */
-function distanceToRegionBounds(point, bounds) {
-  const clamped = {
-    x: Math.clamp(point.x, bounds.left, bounds.right),
-    y: Math.clamp(point.y, bounds.top, bounds.bottom)
-  };
-  return canvas.grid.measurePath([point, clamped]).distance;
-}
-
-function postTrapDetectionMessage(actor, spotted, dc) {
-  const key = spotted
-    ? "DND5E_GM_TOOLKIT.tools.trapDetection.spotted"
-    : "DND5E_GM_TOOLKIT.tools.trapDetection.notSpotted";
-  ChatMessage.create({
-    content: game.i18n.format(key, { name: actor.name, dc }),
-    whisper: ChatMessage.getWhisperRecipients("GM")
-  });
-}
