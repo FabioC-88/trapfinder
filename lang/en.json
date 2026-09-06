@@ -118,7 +118,7 @@
         "flavor": "Knowledge Check ({skill})"
       },
       "card": {
-        "header": "{size} {type}, CR {cr}",
+        "header": "{size} {type}",
         "unknownType": "Creature",
         "senses": "Senses",
         "movement": "Speed",

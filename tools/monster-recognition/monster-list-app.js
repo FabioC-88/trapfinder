@@ -1,6 +1,7 @@
 import { FLAGS, MODULE_ID } from "../../scripts/constants.js";
 import { MONSTER_DATA } from "./monsters-data.js";
 import { resolveMonsterProfile } from "./profile.js";
+import { formatCR } from "./statblock.js";
 
 /**
  * The four knowledge skills used by the type->skill mapping (see monster-database.js). The
@@ -91,7 +92,7 @@ export class MonsterListApp extends foundry.applications.api.ApplicationV2 {
     return `
       <tr data-actor-id="${actor.id}">
         <td>${foundry.utils.escapeHTML(actor.name)}</td>
-        <td>${actor.system?.details?.cr ?? "-"}</td>
+        <td>${actor.system?.details?.cr === undefined ? "-" : formatCR(actor.system.details.cr)}</td>
         <td>${foundry.utils.escapeHTML(typeLabel || "-")}</td>
         <td><select class="skill-select" data-actor-id="${actor.id}">${placeholder}${skillOptions}</select></td>
         <td>${foundry.utils.escapeHTML(status)}</td>

@@ -99,6 +99,18 @@ singolo tratto homebrew fuori scala). Le azioni compaiono invece solo per nome: 
 colpire e dadi di danno di ogni attacco vorrebbe dire ristampare la scheda che il DM ha già
 aperta, mentre "Multiattacco, Morso, Artiglio" risponde già a "con cosa mi attacca".
 
+#### Il GS non compare nel messaggio ai giocatori
+
+L'intestazione dice cosa è la creatura ("Gigante Grande"), non quanto vale sulla tabella di
+progettazione. Il Grado di Sfida è un numero da manuale, non qualcosa che un personaggio ricorda,
+e stamparlo consegnerebbe al tavolo la fascia esatta del mostro. Resta dov'è utile e legittimo:
+nella colonna GS del pannello **Elenco Mostri**, che vede solo il DM (lì i GS frazionari passano
+per `formatCR`, così `0.125` si legge `1/8`).
+
+Nota: la riga finale del messaggio riporta ancora la CD (`CD 15`), da cui il GS si ricava
+all'indietro conoscendo la formula. È rimasta deliberatamente, perché dice al giocatore quanto era
+difficile ciò che ha appena azzeccato; toglierla è una riga sola, se al tavolo dà fastidio.
+
 #### La velocità base a piedi non si stampa
 
 Ce l'hanno tutti: occuperebbe spazio togliendolo alle velocità che cambiano davvero una decisione

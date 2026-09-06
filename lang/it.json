@@ -118,7 +118,7 @@
         "flavor": "Tiro di Conoscenze ({skill})"
       },
       "card": {
-        "header": "{type} {size}, GS {cr}",
+        "header": "{type} {size}",
         "unknownType": "Creatura",
         "senses": "Sensi",
         "movement": "Velocità",

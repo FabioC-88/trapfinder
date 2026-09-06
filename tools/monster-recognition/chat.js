@@ -1,5 +1,4 @@
 import { detectionRecipients } from "../../core/recipients.js";
-import { formatCR } from "./statblock.js";
 
 const TOAST_ACTION = "toast";
 
@@ -76,12 +75,14 @@ function monsterCard(profile) {
   const lore = profile.description
     ?? game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.noDescription");
 
+  // No CR here on purpose: it is a designer's number, not something a character recalls, and
+  // showing it would hand the table the monster's exact tier. The GM still sees it in the
+  // Monster List panel.
   const header = game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.card.header", {
     type: configLabel(CONFIG.DND5E?.creatureTypes, profile.type)
       || game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.card.unknownType"),
-    size: configLabel(CONFIG.DND5E?.actorSizes, profile.size),
-    cr: formatCR(profile.cr)
-  });
+    size: configLabel(CONFIG.DND5E?.actorSizes, profile.size)
+  }).replace(/\s+/g, " ").trim();
 
   const stats = profile.statblock ?? {};
   const t = key => game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.${key}`);
