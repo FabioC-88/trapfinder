@@ -36,8 +36,26 @@
           "range": {
             "label": "Raggio di Rilevamento",
             "hint": "Distanza (in unità di scena) dalla sagoma di questa Region entro cui un PG vicino fa scattare il controllo."
+          },
+          "skill": {
+            "label": "Abilità passiva",
+            "hint": "Su quale passiva viene controllato il PG. Percezione per ciò che si nota di sfuggita, Indagare per ciò che va messo insieme."
+          },
+          "message": {
+            "label": "Messaggio alla riuscita",
+            "hint": "Cosa viene detto al giocatore quando il PG se ne accorge, ad esempio 'Una lastra del pavimento è più bassa delle altre di un dito'. Lascia vuoto per il testo generico. Non viene mai mostrato in caso di fallimento."
+          },
+          "requiresSight": {
+            "label": "Richiede linea di vista",
+            "hint": "Se attivo, un muro tra il PG e questo punto impedisce il rilevamento. Disattivalo per qualcosa che si nota dall'odore o dal rumore dietro l'angolo."
           }
         }
+      }
+    },
+    "passiveDetection": {
+      "skills": {
+        "prc": "Percezione passiva",
+        "inv": "Indagare passivo"
       }
     }
   }

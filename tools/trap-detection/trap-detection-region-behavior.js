@@ -14,14 +14,30 @@ export default class TrapDetectionRegionBehaviorType extends foundry.data.region
   static LOCALIZATION_PREFIXES = ["DND5E_GM_TOOLKIT.trapDetection.behavior"];
 
   static defineSchema() {
-    const { NumberField } = foundry.data.fields;
+    const { BooleanField, NumberField, StringField } = foundry.data.fields;
     return {
       // Declared even though _handleRegionEvent is never implemented/used - the one real
       // reference implementation found for a custom dnd5e RegionBehaviorType always includes
       // this field, and omitting it is an unverified deviation from the only known-working example.
       events: this._createEventsField({ events: [] }),
+      // Which passive the observer is checked on. A field rather than a separate behavior type:
+      // a trap and a hidden clue are the same mechanism, only the skill read differs.
+      // choices is a function, not a literal object, so the labels are resolved after i18nInit -
+      // Function is a documented choices type as of the v14.365 API.
+      skill: new StringField({
+        required: true,
+        blank: false,
+        initial: "prc",
+        choices: () => ({
+          prc: game.i18n.localize("DND5E_GM_TOOLKIT.passiveDetection.skills.prc"),
+          inv: game.i18n.localize("DND5E_GM_TOOLKIT.passiveDetection.skills.inv")
+        })
+      }),
       dc: new NumberField({ required: true, integer: true, min: 0, initial: 15 }),
-      range: new NumberField({ required: true, min: 0, initial: 10 })
+      range: new NumberField({ required: true, min: 0, initial: 10 }),
+      // Shown to the player instead of the generic line, on a success only.
+      message: new StringField({ required: false, blank: true, initial: "" }),
+      requiresSight: new BooleanField({ initial: true })
     };
   }
 }

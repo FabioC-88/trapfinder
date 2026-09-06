@@ -36,8 +36,26 @@
           "range": {
             "label": "Detection Range",
             "hint": "Distance (in scene units) from this Region's footprint within which a nearby PC triggers the check."
+          },
+          "skill": {
+            "label": "Passive Skill",
+            "hint": "Which passive the PC is checked on. Perception for something noticed in passing, Investigation for something that has to be pieced together."
+          },
+          "message": {
+            "label": "Message on Success",
+            "hint": "What the player is told when their PC notices this, e.g. 'One flagstone sits a finger lower than the others'. Leave empty for the generic line. Never shown on a failure."
+          },
+          "requiresSight": {
+            "label": "Requires Line of Sight",
+            "hint": "If set, a wall between the PC and this spot prevents detection. Turn off for something noticed by sound or smell around a corner."
           }
         }
+      }
+    },
+    "passiveDetection": {
+      "skills": {
+        "prc": "Passive Perception",
+        "inv": "Passive Investigation"
       }
     }
   }
