@@ -57,6 +57,18 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
   per i tentativi successivi. Solo i click da DM vengono intercettati — per i giocatori il
   comportamento resta quello nativo di Foundry.
 
+- **Riconoscimento Mostri** (`monster-recognition`, disattivato di default) — quando il
+  combattimento comincia, ogni PG viene confrontato con ogni mostro ostile presente: conoscenza
+  passiva corretta per il tipo di creatura (Arcano/Natura/Religione/Storia, secondo il tipo del
+  PNG) contro CD **10 + Grado di Sfida**. Chi la supera riceve in chat nome e descrizione del
+  mostro. Il riconoscimento vale per tipo di creatura, non per singolo PNG: una volta riconosciuto
+  un Goblin, i Goblin successivi vengono riconosciuti sempre, senza controllo, con un messaggio
+  compatto (un click per rileggere la descrizione). Il modulo include un database interno di
+  mostri comuni, abbinato per nome ai PNG già presenti nel mondo: dal pannello **Elenco Mostri**
+  (in Configure Settings) puoi correggere l'abbinamento, l'abilità e scrivere una descrizione
+  personalizzata per ciascun PNG. Un PNG ostile senza tipo risolvibile e senza correzione manuale
+  viene saltato con un avviso solo per te, mai in silenzio.
+
 ### Dove arrivano le notifiche
 
 Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è
