@@ -1,11 +1,13 @@
 {
   "DND5E_GM_TOOLKIT": {
     "tools": {
-      "trapDetection": {
-        "title": "Rilevamento Trappole (Percezione passiva)",
-        "hint": "Disegna una Region nella vera posizione di una trappola, aggiungi il comportamento 'Trap Detection' per impostare CD e raggio di rilevamento, e ricevi un messaggio privato quando un token PG entra nel raggio - la percezione passiva contro la CD decide se se ne accorge. Avvisa una sola volta per PG per trappola.",
-        "spotted": "{name} nota qualcosa di sospetto nei paraggi (percezione passiva pari o superiore a CD {dc}).",
-        "notSpotted": "{name} passa vicino a una trappola nascosta senza accorgersene (CD {dc})."
+      "passiveDetection": {
+        "title": "Rilevamento passivo (trappole, indizi, porte segrete)",
+        "hint": "Disegna una Region dove si trova davvero qualcosa di nascosto, aggiungi il comportamento 'Rilevamento Passivo' per impostare abilità, CD, raggio e il messaggio che riceve il giocatore. Quando un PG entra nel raggio, la sua passiva contro la CD decide se se ne accorge. Una volta per PG per punto. Le porte segrete si configurano invece sul muro stesso."
+      },
+      "hiddenCreatures": {
+        "title": "Creature nascoste (percezione passiva)",
+        "hint": "Marca il token di un PNG sia come nascosto sulla canvas sia con lo status Nascosto, e ogni PG che entra nel raggio viene controllato: percezione passiva contro furtività passiva della creatura. Non viene rivelato nulla, al giocatore arriva in privato che ha notato qualcosa. Una volta per PG, finché la creatura non si ri-nasconde."
       },
       "lockpicking": {
         "title": "Scasso Serrature",
@@ -19,20 +21,83 @@
         "failure": "{name} non riesce a scassinare la serratura."
       }
     },
-    "trapDetection": {
+    "settings": {
+      "screenAlert": {
+        "name": "Avviso a schermo oltre alla chat",
+        "hint": "Quando un PG nota qualcosa, mostra anche una breve notifica sullo schermo del giocatore che lo controlla. Il messaggio privato in chat parte comunque: questo aggiunge solo un richiamo, perché una riga di chat in mezzo alla scena sfugge facilmente."
+      },
+      "secretDoorDefaultDC": {
+        "name": "Porte segrete: CD di default",
+        "hint": "Usata da ogni porta segreta che non ha una CD propria, così una porta appena disegnata funziona già."
+      },
+      "secretDoorDefaultRange": {
+        "name": "Porte segrete: raggio di default",
+        "hint": "Distanza in unità di scena entro cui la percezione passiva di un PG viene confrontata con una porta segreta."
+      },
+      "creatureDetectionRange": {
+        "name": "Creature nascoste: raggio di rilevamento",
+        "hint": "Distanza in unità di scena entro cui la percezione passiva di un PG viene confrontata con la furtività passiva di una creatura nascosta. Senza un limite, una passiva alta noterebbe un agguato dall'altro capo della mappa."
+      }
+    },
+    "secretDoor": {
+      "wallConfig": {
+        "legend": "Rilevamento passivo",
+        "hint": "Vale solo per i muri con tipo porta Segreta. Lascia un campo vuoto per usare il default del mondo, mostrato come suggerimento.",
+        "dc": "CD di rilevamento",
+        "range": "Raggio di rilevamento",
+        "message": "Messaggio alla riuscita"
+      },
+      "spotted": "{name} nota qualcosa di strano in questo tratto di parete (percezione passiva pari o superiore a CD {dc}).",
+      "notSpotted": "{name} passa davanti a una porta segreta senza accorgersene (CD {dc})."
+    },
+    "passiveDetection": {
       "behavior": {
-        "label": "Rilevamento Trappola",
+        "label": "Rilevamento Passivo",
         "FIELDS": {
           "dc": {
             "label": "CD Rilevamento",
-            "hint": "La percezione passiva che un PG deve eguagliare o superare per accorgersi di questa trappola."
+            "hint": "Il valore passivo (per l'abilità scelta sopra) che un PG deve eguagliare o superare per accorgersene."
           },
           "range": {
             "label": "Raggio di Rilevamento",
             "hint": "Distanza (in unità di scena) dalla sagoma di questa Region entro cui un PG vicino fa scattare il controllo."
+          },
+          "skill": {
+            "label": "Abilità passiva",
+            "hint": "Su quale passiva viene controllato il PG. Percezione per ciò che si nota di sfuggita, Indagare per ciò che va messo insieme."
+          },
+          "message": {
+            "label": "Messaggio alla riuscita",
+            "hint": "Cosa viene detto al giocatore quando il PG se ne accorge, ad esempio 'Una lastra del pavimento è più bassa delle altre di un dito'. Lascia vuoto per il testo generico. Non viene mai mostrato in caso di fallimento."
+          },
+          "requiresSight": {
+            "label": "Richiede linea di vista",
+            "hint": "Se attivo, un muro tra il PG e questo punto impedisce il rilevamento. Disattivalo per qualcosa che si nota dall'odore o dal rumore dietro l'angolo."
           }
         }
+      },
+      "spotted": "{name} nota qualcosa di sospetto nei paraggi (prova passiva pari o superiore a CD {dc}).",
+      "notSpotted": "{name} passa vicino a qualcosa di nascosto senza accorgersene (CD {dc}).",
+      "skills": {
+        "prc": "Percezione passiva",
+        "inv": "Indagare passivo"
+      },
+      "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato.",
+      "migrationFailed": "Rilevamento passivo: {count} comportamenti non convertiti, verrà ritentato al prossimo caricamento.",
+      "migrationError": "Rilevamento passivo: migrazione fallita in modo imprevisto, vedi la console per i dettagli."
+    },
+    "hiddenCreatures": {
+      "spotted": "{name} coglie un movimento che non dovrebbe esserci (percezione passiva pari o superiore a CD {dc}).",
+      "notSpotted": "{name} passa accanto a qualcosa di nascosto e in agguato (CD {dc}).",
+      "markerWarning": {
+        "needsHidden": "{name} è marcato come Nascosto ma il suo token è ancora visibile ai giocatori, quindi non verrà rilevato. Nascondi anche il token.",
+        "needsStatus": "{name} è nascosto ai giocatori ma non ha lo status Nascosto, quindi non verrà rilevato. Aggiungi lo status se è in agguato."
       }
+    },
+    "surprise": {
+      "title": "Sorpresi dall'imboscata?",
+      "hint": "Questi PG non hanno individuato almeno una creatura nascosta su questa scena. Togli la spunta a chi non deve essere sorpreso, poi conferma. Applicalo prima di tirare l'iniziativa: dnd5e assegna lo svantaggio al momento del tiro.",
+      "confirm": "Marca come sorpresi"
     }
   }
 }
