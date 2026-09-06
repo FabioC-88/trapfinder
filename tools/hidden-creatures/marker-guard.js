@@ -16,6 +16,7 @@ export function registerMarkerGuard() {
 
     const actor = effect.parent;
     if (!(actor instanceof Actor)) return;
+    if (actor.type === "character") return;
 
     const tokens = actor.isToken ? [actor.token] : actor.getActiveTokens(false, true);
     const visible = tokens.filter(token => token && !token.hidden);

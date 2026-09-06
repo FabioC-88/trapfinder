@@ -89,7 +89,7 @@ export default {
       await migrateTrapDetectionBehaviors(moduleId);
     } catch (err) {
       console.error(`${moduleId} | Passive Detection migration threw unexpectedly`, err);
-      ui.notifications.error("Passive Detection: migration failed unexpectedly, see console for details.");
+      ui.notifications.error(game.i18n.localize("DND5E_GM_TOOLKIT.passiveDetection.migrationError"));
     }
 
     if (!game.settings.get(moduleId, this.id)) return;

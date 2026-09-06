@@ -22,7 +22,8 @@ export function tokenCenter(tokenDocument) {
  * @returns {boolean}
  */
 export function isHiddenCreature(tokenDocument) {
-  return tokenDocument.hidden === true
+  return tokenDocument.actor?.type !== "character"
+    && tokenDocument.hidden === true
     && tokenDocument.actor?.statuses?.has(HIDING_STATUS) === true;
 }
 

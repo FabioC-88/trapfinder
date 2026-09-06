@@ -56,7 +56,7 @@
         "FIELDS": {
           "dc": {
             "label": "CD Rilevamento",
-            "hint": "La percezione passiva che un PG deve eguagliare o superare per accorgersi di questa trappola."
+            "hint": "Il valore passivo (per l'abilità scelta sopra) che un PG deve eguagliare o superare per accorgersene."
           },
           "range": {
             "label": "Raggio di Rilevamento",
@@ -82,7 +82,9 @@
         "prc": "Percezione passiva",
         "inv": "Indagare passivo"
       },
-      "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato."
+      "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato.",
+      "migrationFailed": "Rilevamento passivo: {count} comportamenti non convertiti, verrà ritentato al prossimo caricamento.",
+      "migrationError": "Rilevamento passivo: migrazione fallita in modo imprevisto, vedi la console per i dettagli."
     },
     "hiddenCreatures": {
       "spotted": "{name} coglie un movimento che non dovrebbe esserci (percezione passiva pari o superiore a CD {dc}).",

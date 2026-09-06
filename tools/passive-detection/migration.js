@@ -63,11 +63,21 @@ export async function migrateTrapDetectionBehaviors(moduleId) {
     }
   }
 
-  if (migrated) {
-    ui.notifications.info(
-      game.i18n.format("DND5E_GM_TOOLKIT.passiveDetection.migrated", { count: migrated })
-      + (failed ? ` (${failed} failed, will retry next load)` : "")
-    );
+  if (migrated || failed) {
+    const parts = [];
+    if (migrated) {
+      parts.push(game.i18n.format("DND5E_GM_TOOLKIT.passiveDetection.migrated", { count: migrated }));
+    }
+    if (failed) {
+      parts.push(game.i18n.format("DND5E_GM_TOOLKIT.passiveDetection.migrationFailed", { count: failed }));
+    }
+
+    const message = parts.join(" ");
+    if (failed) {
+      ui.notifications.warn(message);
+    } else {
+      ui.notifications.info(message);
+    }
   }
 
   // Written only when every region succeeded: see the isolation rationale above.

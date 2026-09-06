@@ -56,7 +56,7 @@
         "FIELDS": {
           "dc": {
             "label": "Detection DC",
-            "hint": "The passive Perception a PC needs to meet or beat to notice this trap."
+            "hint": "The passive score (for whichever skill is chosen above) a PC needs to meet or beat to notice this."
           },
           "range": {
             "label": "Detection Range",
@@ -82,7 +82,9 @@
         "prc": "Passive Perception",
         "inv": "Passive Investigation"
       },
-      "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format."
+      "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format.",
+      "migrationFailed": "Passive Detection: {count} behavior(s) failed to convert, will retry next load.",
+      "migrationError": "Passive Detection: migration failed unexpectedly, see console for details."
     },
     "hiddenCreatures": {
       "spotted": "{name} catches movement that should not be there (passive Perception meets/beats DC {dc}).",
