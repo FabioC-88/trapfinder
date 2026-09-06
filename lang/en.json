@@ -19,6 +19,12 @@
         "failure": "{name} fails to pick the lock."
       }
     },
+    "settings": {
+      "screenAlert": {
+        "name": "On-screen alert as well as chat",
+        "hint": "When a PC notices something, also pop a brief notification on the owning player's screen. The whisper in chat is sent either way - this only adds a nudge, since a chat line is easy to miss mid-scene."
+      }
+    },
     "trapDetection": {
       "behavior": {
         "label": "Trap Detection",

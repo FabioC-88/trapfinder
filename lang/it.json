@@ -19,6 +19,12 @@
         "failure": "{name} non riesce a scassinare la serratura."
       }
     },
+    "settings": {
+      "screenAlert": {
+        "name": "Avviso a schermo oltre alla chat",
+        "hint": "Quando un PG nota qualcosa, mostra anche una breve notifica sullo schermo del giocatore che lo controlla. Il messaggio privato in chat parte comunque: questo aggiunge solo un richiamo, perché una riga di chat in mezzo alla scena sfugge facilmente."
+      }
+    },
     "trapDetection": {
       "behavior": {
         "label": "Rilevamento Trappola",
