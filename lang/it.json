@@ -106,10 +106,17 @@
     "monsterRecognition": {
       "toast": "Hai riconosciuto: {name}",
       "noDescription": "Il personaggio riconosce il tipo di creatura, ma nessuna descrizione è stata impostata dal DM.",
-      "recognizedBy": "{name} lo riconosce grazie a {skill} passiva (CD {dc}).",
+      "recognizedByPassive": "{name} lo riconosce grazie a {skill} passiva (CD {dc}).",
+      "recognizedByActive": "{name} lo riconosce dopo un tiro attivo di {skill} (CD {dc}).",
       "alreadyKnown": "Già noto: {name} (clicca per rileggere)",
-      "missed": "{name} non riesce a identificare {monster}: {skill} passiva sotto CD {dc}.",
+      "missedPassive": "{name} non riesce a identificare {monster}: {skill} passiva sotto CD {dc}.",
+      "missedActive": "{name} tenta un tiro di {skill} per identificare {monster}, ma non basta (CD {dc}).",
       "unresolvedSkill": "Riconoscimento Mostri: impossibile determinare l'abilità di conoscenza per '{name}' (nessun tipo impostato). Correggila dal pannello Elenco Mostri.",
+      "activeCheck": {
+        "buttonTitle": "Tiro di Conoscenze attivo",
+        "noActor": "Nessun PG controllato/selezionato con cui tentare il tiro di conoscenze.",
+        "flavor": "Tiro di Conoscenze ({skill})"
+      },
       "skills": {
         "arc": "Arcano",
         "nat": "Natura",

@@ -69,6 +69,13 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
   personalizzata per ciascun PNG. Un PNG ostile senza tipo risolvibile e senza correzione manuale
   viene saltato con un avviso solo per te, mai in silenzio.
 
+  Se un giocatore vuole tentare un **tiro attivo** invece di affidarsi alla passiva, clicca
+  l'icona a forma di libro sul Token HUD del PNG: fa tirare al PG attualmente
+  controllato/selezionato la stessa abilità di conoscenza (tiro vero, pubblico in chat, con
+  dialog nativo per vantaggio/bonus — qui, a differenza del resto del modulo, il dado si vede
+  davvero perché il giocatore lo sta chiedendo esplicitamente). Se il PG ha già riconosciuto quel
+  tipo di mostro, niente tiro: arriva subito il messaggio compatto.
+
 ### Dove arrivano le notifiche
 
 Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è

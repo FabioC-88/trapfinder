@@ -44,6 +44,20 @@ Riferimento: `docs/superpowers/specs/2026-09-06-riconoscimento-mostri-design.md`
   - avviso solo al DM (`ui.notifications.warn`) per un mostro senza abilità risolvibile, poi si
     salta quel mostro
 
+## 5bis. Tiro attivo (Token HUD)
+
+- [ ] `chat.js`: parametro `checkMode` (`"passive"`/`"active"`) su `sendRecognitionResult`, due
+      varianti testuali per riuscita/fallimento; esporta `skillLabelFor`
+- [ ] `tools/monster-recognition/active-check.js`:
+  - `registerActiveCheckButton(moduleId)`: su `renderTokenHUD`, aggiunge un'icona per i token PNG
+    (solo per il DM)
+  - al click: usa `canvas.tokens.controlled[0]?.actor` come PG che tira (stesso schema di
+    `lockpicking`); se già noto, messaggio compatto senza tirare; altrimenti
+    `actor.rollSkill({ skill }, {}, { data: { flavor } })` (stesso schema `(config, dialog,
+    message)` già verificato per `rollToolCheck`), poi stessa `evaluateRecognition` e
+    `sendRecognitionResult` del flusso passivo con `checkMode: "active"`
+- [ ] `index.js`: registra `registerActiveCheckButton` in `onReady`, dietro lo stesso interruttore
+
 ## 6. Pannello "Elenco Mostri"
 
 - [ ] `tools/monster-recognition/monster-list-app.js`: `ApplicationV2` (stessa famiglia di

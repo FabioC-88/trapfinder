@@ -165,6 +165,48 @@ sull'Actor — modello più semplice da ragionare del "scrivi solo se diverso da
 descrizione (Personalizzata / da database "nome" / nessuna), pulsante "Modifica" che apre un
 dialog con selezione del mostro di riferimento e testo personalizzato.
 
+### Tiro attivo: eccezione dichiarata al "non tira mai i dadi"
+
+Aggiunto dopo la prima versione di questo documento, su richiesta esplicita: un pulsante sul
+Token HUD di ogni PNG fa tirare al PG attualmente controllato/selezionato un **tiro attivo**
+della stessa abilità di conoscenza, per quando il giocatore chiede esplicitamente di provarci
+invece di affidarsi alla passiva. Qui il principio guida del modulo si inverte deliberatamente:
+un tiro attivo *è* un tiro, richiesto dal giocatore — nasconderlo sarebbe innaturale quanto far
+tirare la passiva lo sarebbe per il resto del modulo.
+
+Decisioni:
+
+- **Il modulo tira per il PG** (`actor.rollSkill(...)`, stesso schema `(config, dialog, message)`
+  già verificato per `rollToolCheck` in `tools/lockpicking/door-control-wrapper.js`), non un
+  totale inserito a mano dal DM: è un tiro vero, pubblico in chat come qualunque altro, con
+  dialog di conferma nativo (vantaggio, bonus). La CD non compare mai nel testo del tiro (solo
+  nell'eventuale messaggio di riconoscimento a riuscita avvenuta): comparirebbe prima di
+  conoscere il risultato, vanificando la prova.
+- **Pulsante sul Token HUD**, non nel pannello Elenco Mostri: deve essere utilizzabile a tavolo
+  in ogni momento (esplorazione o combattimento), non solo aprendo Impostazioni. Stesso schema
+  già in uso per lo scasso — "usa il PG attualmente controllato/selezionato" — quindi nessuna
+  nuova convenzione da imparare.
+- **Se il PG ha già riconosciuto quel tipo di mostro, niente tiro**: si manda subito il messaggio
+  compatto, come nel flusso passivo. Tirare di nuovo per qualcosa che il personaggio sa già non
+  avrebbe senso.
+- **Riuso quasi totale della logica esistente**: stesso `resolveMonsterProfile`, stessa
+  `evaluateRecognition` (il totale del tiro attivo sostituisce la passiva nel confronto con la
+  CD), stesso `markRecognized` alla riuscita, stesso `sendRecognitionResult`. L'unica differenza
+  è testuale: un nuovo parametro `checkMode` (`"passive"` di default, `"active"` per il tiro)
+  sceglie tra due varianti della stessa frase ("grazie a Arcana passiva" contro "dopo un tiro
+  attivo di Arcana"), perché la frase esistente diceva sempre "passiva" anche quando non lo era.
+- **Nessun filtro di disposizione ostile**: a differenza della verifica automatica a inizio
+  combattimento (che ha senso solo contro i nemici), qui è il DM a scegliere il bersaglio
+  cliccandolo — vale per qualunque PNG, ostile o no.
+
+**Rischio noto, non verificato**: l'iniezione nel Token HUD (`renderTokenHUD`) è la parte meno
+verificata di questa spec. A differenza delle schede già usate altrove nel modulo (Wall Config,
+migrate ad ApplicationV2 e verificate su wall-height), l'HUD dei token in Foundry è storicamente
+rimasto sull'`Application` legacy (jQuery), e il nome della classe CSS del contenitore
+(`.col.left`, usato come selettore) è una stima da verificare al primo avvio reale. Il codice
+gestisce comunque sia `html` nativo sia jQuery, e se il contenitore non viene trovato aggiunge
+l'icona direttamente alla radice invece di fallire in silenzio.
+
 ## Architettura
 
 ```
@@ -178,6 +220,7 @@ tools/monster-recognition/
                              flag, system.details) e gestisce il flag di memoria sul PG
   chat.js                   costruisce e invia i messaggi (completo / compatto / whisper fallimento)
   combat-hook.js            hook combatStart: raggruppa i PNG ostili per identità, valuta ogni PG
+  active-check.js           pulsante Token HUD: tiro attivo per il PG controllato/selezionato
   monster-list-app.js       ApplicationV2 "Elenco Mostri"
 ```
 
@@ -207,6 +250,7 @@ mano al tavolo.
 | Evento | Cosa fa |
 |---|---|
 | `combatStart` | Prende i combattenti PNG ostili del Combat, li raggruppa per identità di mostro risolta, e per ciascun gruppo valuta ogni PG nel combattimento |
+| `renderTokenHUD` | Aggiunge il pulsante "Tiro di Conoscenze attivo" su ogni token PNG |
 | `renderSettingsConfig` (via `registerMenu`) | Apre il pannello "Elenco Mostri" |
 
 Gira solo lato DM (`game.user.isGM`), come tutto il resto del modulo.
@@ -224,4 +268,5 @@ Vitest sulla parte pura di `tools/monster-recognition/monster-database.js`:
 Verifica a mano al tavolo: pannello (abbinamento automatico, override, descrizione personalizzata),
 un incontro con più mostri dello stesso tipo (un solo messaggio per PG), un PG che rivede lo stesso
 tipo di mostro in un incontro successivo (messaggio compatto), un PNG ostile senza tipo risolvibile
-(avviso al DM, nessun crash).
+(avviso al DM, nessun crash), il pulsante sul Token HUD (icona visibile solo al DM, tiro pubblico
+con dialog nativo, messaggio compatto invece del tiro se il mostro è già noto).

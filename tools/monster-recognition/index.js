@@ -1,4 +1,5 @@
 import { SETTINGS } from "../../scripts/constants.js";
+import { registerActiveCheckButton } from "./active-check.js";
 import { registerCombatStartHook } from "./combat-hook.js";
 import { MonsterListApp } from "./monster-list-app.js";
 
@@ -40,5 +41,6 @@ export default {
   onReady(moduleId) {
     if (!game.settings.get(moduleId, this.id)) return;
     registerCombatStartHook(moduleId);
+    registerActiveCheckButton(moduleId);
   }
 };

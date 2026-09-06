@@ -106,10 +106,17 @@
     "monsterRecognition": {
       "toast": "You recognized: {name}",
       "noDescription": "The character recognizes the type of creature, but no description has been set by the GM.",
-      "recognizedBy": "{name} recognizes it thanks to passive {skill} (DC {dc}).",
+      "recognizedByPassive": "{name} recognizes it thanks to passive {skill} (DC {dc}).",
+      "recognizedByActive": "{name} recognizes it after an active {skill} check (DC {dc}).",
       "alreadyKnown": "Already known: {name} (click to reread)",
-      "missed": "{name} fails to identify {monster}: passive {skill} below DC {dc}.",
+      "missedPassive": "{name} fails to identify {monster}: passive {skill} below DC {dc}.",
+      "missedActive": "{name} attempts a {skill} check to identify {monster}, but falls short (DC {dc}).",
       "unresolvedSkill": "Monster Recognition: could not determine the knowledge skill for '{name}' (no type set). Fix it from the Monster List panel.",
+      "activeCheck": {
+        "buttonTitle": "Active Knowledge Check",
+        "noActor": "No controlled/selected PC to attempt the knowledge check with.",
+        "flavor": "Knowledge Check ({skill})"
+      },
       "skills": {
         "arc": "Arcana",
         "nat": "Nature",
