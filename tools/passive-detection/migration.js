@@ -8,9 +8,12 @@ const CURRENT_VERSION = 1;
  * Converts behaviors of the pre-generalisation type to the new one.
  *
  * A document's type cannot be changed by an update, so each behavior is recreated and the old one
- * deleted. The version marker is written only after the whole pass succeeds: a partial run leaves
- * the marker untouched and simply retries next load, which is safer than recording a half-done
- * migration.
+ * deleted. That create+delete pair is not atomic, so it is isolated per region in its own
+ * try/catch: a region that fails partway (e.g. create succeeds, delete fails) is logged and
+ * skipped rather than aborting the whole pass. The version marker is written only if every
+ * region succeeded - a partial run leaves it untouched, so the whole scan retries next load.
+ * Regions that already succeeded simply no-op on that retry, since their old-type behaviors are
+ * already gone and the `outdated` filter below finds nothing left to convert for them.
  *
  * @param {string} moduleId
  * @returns {Promise<void>}
@@ -20,6 +23,7 @@ export async function migrateTrapDetectionBehaviors(moduleId) {
   if (game.user !== game.users.activeGM) return;
 
   let migrated = 0;
+  let failed = 0;
 
   for (const scene of game.scenes) {
     for (const region of scene.regions) {
@@ -44,17 +48,30 @@ export async function migrateTrapDetectionBehaviors(moduleId) {
         }
       }));
 
-      await region.createEmbeddedDocuments("RegionBehavior", replacements);
-      await region.deleteEmbeddedDocuments("RegionBehavior", outdated.map(b => b.id));
-      migrated += outdated.length;
+      try {
+        await region.createEmbeddedDocuments("RegionBehavior", replacements);
+        await region.deleteEmbeddedDocuments("RegionBehavior", outdated.map(b => b.id));
+        migrated += outdated.length;
+      } catch (err) {
+        failed++;
+        console.error(
+          `${moduleId} | Passive Detection migration failed for region "${region.name}" ` +
+          `(${region.id}) on scene "${scene.name}" (${scene.id})`,
+          err
+        );
+      }
     }
   }
-
-  await game.settings.set(moduleId, SETTINGS.migrationVersion, CURRENT_VERSION);
 
   if (migrated) {
     ui.notifications.info(
       game.i18n.format("DND5E_GM_TOOLKIT.passiveDetection.migrated", { count: migrated })
+      + (failed ? ` (${failed} failed, will retry next load)` : "")
     );
+  }
+
+  // Written only when every region succeeded: see the isolation rationale above.
+  if (!failed) {
+    await game.settings.set(moduleId, SETTINGS.migrationVersion, CURRENT_VERSION);
   }
 }

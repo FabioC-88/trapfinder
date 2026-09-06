@@ -62,7 +62,16 @@ export default {
     // Before the toggle check on purpose: Regions saved under the old type must be converted even
     // in a world where the tool is currently off, or they would be left behind for good once the
     // old type declaration is dropped from module.json.
-    await migrateTrapDetectionBehaviors(moduleId);
+    // Isolated in its own try/catch: nothing awaits onReady() (see main.js), so an unhandled
+    // rejection here would silently skip everything below - including the moveToken hook - and
+    // leave the whole tool dark for the session with no signal beyond an unhandled-rejection
+    // console entry. A bad migration must never take the tool down with it.
+    try {
+      await migrateTrapDetectionBehaviors(moduleId);
+    } catch (err) {
+      console.error(`${moduleId} | Passive Detection migration threw unexpectedly`, err);
+      ui.notifications.error("Passive Detection: migration failed unexpectedly, see console for details.");
+    }
 
     if (!game.settings.get(moduleId, this.id)) return;
 
