@@ -60,6 +60,50 @@ l'identità di mostro risolta (vedi sotto "Abbinamento mostro"). Un "Goblin Scia
 ha associato manualmente la voce "goblin" del database viene ricordato come "goblin": se in
 un'altra scena compare un semplice "Goblin" già riconosciuto, il PG lo riconosce subito.
 
+### La meccanica si legge dall'Actor, il database tiene solo la lore
+
+Aggiunto dopo la prima versione: il messaggio di riconoscimento deve essere **utile in
+combattimento**, non solo evocativo. Servono sensi, resistenze, immunità, vulnerabilità, tratti e
+attacchi.
+
+La scelta portante è **da dove arrivano quei dati**: non da testo scritto a mano accanto alla lore,
+ma letti a runtime dall'Actor che il DM ha piazzato (`system.attributes.senses`,
+`system.attributes.movement`, `system.traits.dr/di/dv/ci`, `system.traits.languages`, e gli item
+del PNG per tratti e azioni).
+
+Perché non hardcodarli nel database:
+
+- **Sono giusti anche quando il mostro non è quello di listino.** Un troll reskinnato che ha perso
+  la rigenerazione, un drago homebrew con un'immunità in più, un PNG a cui il DM ha cambiato i
+  sensi: si descrivono da soli correttamente. Un testo fisso mentirebbe, e mentirebbe in silenzio.
+- **Funzionano per qualunque mostro**, non solo per i ~60 del database. Un PNG mai visto prima
+  produce comunque una scheda meccanica completa; gli manca solo la lore.
+- **Zero manutenzione e zero rischio di numeri sbagliati**: i dati non vengono ricopiati, quindi
+  non possono divergere dalla scheda.
+
+Resta al database esattamente ciò che un blocco statistiche **non** ha: la lore. La divisione è
+netta — lore dal database (o dal testo personalizzato del DM), meccanica dal mostro vero.
+
+Conseguenza: `tools/monster-recognition/statblock.js` restituisce **chiavi grezze dnd5e**
+(`"fire"`, `"darkvision"`), mai stringhe già tradotte. La localizzazione avviene tutta in
+`chat.js`. È questo che tiene l'estrazione pura e testabile senza Foundry, `CONFIG.DND5E` o
+`game.i18n` — ed è la parte dove un bug darebbe informazioni false al tavolo, quindi è la parte
+che merita i test.
+
+#### I tratti portano il loro testo, le azioni no
+
+"Rigenerazione" senza "a meno che non subisca danni da fuoco o acido" è proprio il dettaglio che
+serviva. Quindi ogni tratto passivo compare con la sua descrizione (ripulita dall'HTML e dagli
+enricher di Foundry, troncata a 300 caratteri su un confine di parola per non farsi allagare da un
+singolo tratto homebrew fuori scala). Le azioni compaiono invece solo per nome: stampare tiro per
+colpire e dadi di danno di ogni attacco vorrebbe dire ristampare la scheda che il DM ha già
+aperta, mentre "Multiattacco, Morso, Artiglio" risponde già a "con cosa mi attacca".
+
+#### La velocità base a piedi non si stampa
+
+Ce l'hanno tutti: occuperebbe spazio togliendolo alle velocità che cambiano davvero una decisione
+tattica (vola, scava, nuota).
+
 ### Database interno con corrispondenza per nome, non un browser di compendio
 
 Il DM ha chiesto esplicitamente: un file con l'elenco di mostri e relative descrizioni, confrontato
@@ -216,6 +260,8 @@ tools/monster-recognition/
                              le descrizioni vivono nei file lang/*.json, come il resto del modulo)
   monster-database.js       logica pura: normalizeName, findMonsterByName, skillForType,
                              computeIdentificationDC, evaluateRecognition — testabile senza Foundry
+  statblock.js              logica pura: estrae sensi/difese/tratti/azioni dall'Actor come chiavi
+                             grezze dnd5e, ripulisce il testo dei tratti, formatta il GS
   profile.js                risolve il profilo di riconoscimento di un Actor NPC (tocca Foundry:
                              flag, system.details) e gestisce il flag di memoria sul PG
   chat.js                   costruisce e invia i messaggi (completo / compatto / whisper fallimento)
@@ -256,6 +302,12 @@ mano al tavolo.
 Gira solo lato DM (`game.user.isGM`), come tutto il resto del modulo.
 
 ## Test
+
+Vitest su `tools/monster-recognition/statblock.js`: sensi presenti/assenti, percezione passiva
+mancante, velocità (esclusa quella a piedi), difese lette sia da `Set` (dnd5e v3+) sia da array,
+voci `custom` separate da punto e virgola, tratti con testo contro azioni per nome, `plainText`
+(tag HTML, enricher `[[/damage]]`/`@UUID`, entità, troncamento su confine di parola), `formatCR`
+sui GS frazionari, e un attore vuoto/malformato che non deve far esplodere niente.
 
 Vitest sulla parte pura di `tools/monster-recognition/monster-database.js`:
 

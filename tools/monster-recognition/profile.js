@@ -1,15 +1,20 @@
 import { FLAGS } from "../../scripts/constants.js";
 import { MONSTER_DATA } from "./monsters-data.js";
 import { computeIdentificationDC, findMonsterByName, normalizeName, skillForType } from "./monster-database.js";
+import { summarizeStatblock } from "./statblock.js";
 
 /**
  * @typedef {object} MonsterProfile
  * @property {string} key            Stable identity used for the per-PC "already recognized" memory.
  * @property {string} displayName    The placed actor's own name, shown in chat.
  * @property {string|null} skill     dnd5e skill key the PC is checked on, or null if unresolvable.
- * @property {string|null} description
+ * @property {string|null} description  Lore text: the half a stat block does not carry.
  * @property {number} dc
  * @property {"custom"|"bundle"|"none"} source  Where the description came from.
+ * @property {string|null} type      dnd5e creature type key.
+ * @property {string|null} size      dnd5e size key.
+ * @property {number} cr
+ * @property {import("./statblock.js").StatblockSummary} statblock  Read live off the actor.
  */
 
 /**
@@ -49,7 +54,11 @@ export function resolveMonsterProfile(actor, moduleId) {
     skill: skill ?? null,
     description,
     dc: computeIdentificationDC(cr),
-    source
+    source,
+    type,
+    size: actor.system?.traits?.size ?? null,
+    cr,
+    statblock: summarizeStatblock(actor)
   };
 }
 

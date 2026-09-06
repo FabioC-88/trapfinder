@@ -117,6 +117,33 @@
         "noActor": "Nessun PG controllato/selezionato con cui tentare il tiro di conoscenze.",
         "flavor": "Tiro di Conoscenze ({skill})"
       },
+      "card": {
+        "header": "{type} {size}, GS {cr}",
+        "unknownType": "Creatura",
+        "senses": "Sensi",
+        "movement": "Velocità",
+        "vulnerabilities": "Vulnerabilità",
+        "resistances": "Resistenze",
+        "immunities": "Immunità",
+        "conditionImmunities": "Immunità a condizioni",
+        "traits": "Tratti",
+        "actions": "Attacchi e azioni",
+        "languages": "Linguaggi",
+        "passivePerception": "Percezione passiva {value}",
+        "sense": {
+          "darkvision": "scurovisione",
+          "blindsight": "vista cieca",
+          "tremorsense": "percezione tellurica",
+          "truesight": "vista pura"
+        },
+        "speed": {
+          "fly": "volare",
+          "swim": "nuotare",
+          "climb": "scalare",
+          "burrow": "scavare",
+          "hover": "può fluttuare"
+        }
+      },
       "skills": {
         "arc": "Arcano",
         "nat": "Natura",

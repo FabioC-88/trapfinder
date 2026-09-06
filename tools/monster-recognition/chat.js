@@ -1,4 +1,5 @@
 import { detectionRecipients } from "../../core/recipients.js";
+import { formatCR } from "./statblock.js";
 
 const TOAST_ACTION = "toast";
 
@@ -40,22 +41,17 @@ export async function sendRecognitionResult({ moduleId, pcActor, profile, outcom
 
 function recognizedText({ pcActor, profile, checkMode }) {
   const skillLabel = skillLabelFor(profile.skill);
-  const body = profile.description
-    ?? game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.noDescription");
   const key = checkMode === "active"
     ? "DND5E_GM_TOOLKIT.monsterRecognition.recognizedByActive"
     : "DND5E_GM_TOOLKIT.monsterRecognition.recognizedByPassive";
 
   return `
-    <p><strong>${foundry.utils.escapeHTML(profile.displayName)}</strong></p>
-    <p>${foundry.utils.escapeHTML(body)}</p>
+    ${monsterCard(profile)}
     <p class="hint">${game.i18n.format(key, { name: pcActor.name, skill: skillLabel, dc: profile.dc })}</p>
   `;
 }
 
 function knownText({ profile }) {
-  const body = profile.description
-    ?? game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.noDescription");
   const summary = game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.alreadyKnown", {
     name: profile.displayName
   });
@@ -63,9 +59,124 @@ function knownText({ profile }) {
   return `
     <details>
       <summary>${foundry.utils.escapeHTML(summary)}</summary>
-      <p>${foundry.utils.escapeHTML(body)}</p>
+      ${monsterCard(profile)}
     </details>
   `;
+}
+
+/**
+ * What the character recalls: a header naming what kind of thing it is, the lore, then the facts
+ * that change what a player does this round. The lore comes from the database (or the GM's own
+ * text); everything below it is read live off the actor, so it is right even for a monster that
+ * was reskinned, homebrewed, or never in the database at all.
+ *
+ * Rows with nothing in them are dropped rather than printed empty, the way a stat block does it.
+ */
+function monsterCard(profile) {
+  const lore = profile.description
+    ?? game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.noDescription");
+
+  const header = game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.card.header", {
+    type: configLabel(CONFIG.DND5E?.creatureTypes, profile.type)
+      || game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.card.unknownType"),
+    size: configLabel(CONFIG.DND5E?.actorSizes, profile.size),
+    cr: formatCR(profile.cr)
+  });
+
+  const stats = profile.statblock ?? {};
+  const t = key => game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.${key}`);
+
+  const rows = [
+    [t("senses"), sensesLine(stats)],
+    [t("movement"), movementLine(stats)],
+    [t("vulnerabilities"), damageList(stats.vulnerabilities, CONFIG.DND5E?.damageTypes)],
+    [t("resistances"), damageList(stats.resistances, CONFIG.DND5E?.damageTypes)],
+    [t("immunities"), damageList(stats.immunities, CONFIG.DND5E?.damageTypes)],
+    [t("conditionImmunities"), damageList(stats.conditionImmunities, CONFIG.DND5E?.conditionTypes)],
+    [t("actions"), (stats.actions ?? []).join(", ")],
+    [t("languages"), damageList(stats.languages, CONFIG.DND5E?.languages)]
+  ].filter(([, value]) => value);
+
+  const list = rows.length
+    ? `<ul class="trapfinder-monster-card">${rows.map(([label, value]) =>
+      `<li><strong>${label}</strong>: ${foundry.utils.escapeHTML(value)}</li>`).join("")}</ul>`
+    : "";
+
+  return `
+    <p><strong>${foundry.utils.escapeHTML(profile.displayName)}</strong> — ${foundry.utils.escapeHTML(header)}</p>
+    <p>${foundry.utils.escapeHTML(lore)}</p>
+    ${list}
+    ${traitsList(stats.traits, t("traits"))}
+  `;
+}
+
+/** Each trait gets its own line with its text: the name alone is rarely the useful half. */
+function traitsList(traits, label) {
+  if (!traits?.length) return "";
+
+  const items = traits.map(trait => {
+    const name = `<strong>${foundry.utils.escapeHTML(trait.name)}</strong>`;
+    const text = trait.description ? `: ${foundry.utils.escapeHTML(trait.description)}` : "";
+    return `<li>${name}${text}</li>`;
+  }).join("");
+
+  return `<p><strong>${label}</strong></p><ul class="trapfinder-monster-card">${items}</ul>`;
+}
+
+function sensesLine({ senses = [], specialSenses = [], passivePerception, sensesUnits }) {
+  const parts = senses.map(sense =>
+    `${game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.sense.${sense.key}`)} ${sense.value}${unitSuffix(sensesUnits)}`
+  );
+  parts.push(...specialSenses);
+
+  if (passivePerception) {
+    parts.push(game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.card.passivePerception", {
+      value: passivePerception
+    }));
+  }
+
+  return parts.join(", ");
+}
+
+function movementLine({ movement = [], hover, movementUnits }) {
+  const parts = movement.map(speed =>
+    `${game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.speed.${speed.key}`)} ${speed.value}${unitSuffix(movementUnits)}`
+  );
+  if (hover) parts.push(game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.card.speed.hover"));
+  return parts.join(", ");
+}
+
+function unitSuffix(units) {
+  if (!units) return "";
+  const label = configLabel(CONFIG.DND5E?.movementUnits, units, "abbreviation");
+  return ` ${label || units}`;
+}
+
+/** @param {string[]} keys */
+function damageList(keys, config) {
+  return (keys ?? []).map(key => configLabel(config, key) || key).join(", ");
+}
+
+/**
+ * dnd5e has shipped these config entries as plain strings, as `{label}` objects, and (for
+ * languages in v4) as a tree of `{children}`. Reading all three shapes is cheaper than pinning
+ * one and having the row silently print raw keys after a system update.
+ */
+function configLabel(config, key, field = "label") {
+  if (!config || !key) return "";
+
+  const entry = config[key];
+  if (typeof entry === "string") return entry;
+  if (entry?.[field]) return game.i18n.localize(entry[field]);
+  if (entry?.label) return game.i18n.localize(entry.label);
+
+  for (const candidate of Object.values(config)) {
+    if (!candidate?.children) continue;
+    const nested = configLabel(candidate.children, key, field);
+    if (nested) return nested;
+  }
+
+  return "";
 }
 
 function missedText({ pcActor, profile, checkMode }) {

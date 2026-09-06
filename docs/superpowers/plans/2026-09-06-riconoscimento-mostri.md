@@ -27,6 +27,19 @@ Riferimento: `docs/superpowers/specs/2026-09-06-riconoscimento-mostri-design.md`
   - `resolveMonsterProfile(actor, moduleId)` → `{ key, displayName, type, skill, description, dc, source }`
   - `isRecognized(pcActor, key, moduleId)` / `markRecognized(pcActor, key, moduleId)`
 
+## 3bis. Scheda meccanica letta dall'Actor
+
+- [ ] `tools/monster-recognition/statblock.js` (puro): `summarizeStatblock(actor)` → sensi,
+      percezione passiva, velocità diverse da quella a piedi, linguaggi, dr/di/dv/ci, tratti
+      (nome + testo) e azioni (solo nome), tutto come **chiavi grezze dnd5e**; più `plainText`
+      (strip HTML/enricher + troncamento) e `formatCR`
+- [ ] `profile.js`: il profilo si porta dietro `type`, `size`, `cr` e `statblock`
+- [ ] `tests/statblock.test.js`: casi elencati nella spec
+- [ ] Localizzazione delle chiavi grezze **solo** in `chat.js`, via `CONFIG.DND5E`
+      (`damageTypes`, `conditionTypes`, `languages`, `creatureTypes`, `actorSizes`,
+      `movementUnits`), con lettura tollerante delle tre forme che dnd5e ha usato negli anni
+      (stringa, `{label}`, albero con `{children}`)
+
 ## 4. Messaggi in chat
 
 - [ ] `tools/monster-recognition/chat.js`:

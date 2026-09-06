@@ -117,6 +117,33 @@
         "noActor": "No controlled/selected PC to attempt the knowledge check with.",
         "flavor": "Knowledge Check ({skill})"
       },
+      "card": {
+        "header": "{size} {type}, CR {cr}",
+        "unknownType": "Creature",
+        "senses": "Senses",
+        "movement": "Speed",
+        "vulnerabilities": "Vulnerabilities",
+        "resistances": "Resistances",
+        "immunities": "Immunities",
+        "conditionImmunities": "Condition immunities",
+        "traits": "Traits",
+        "actions": "Attacks and actions",
+        "languages": "Languages",
+        "passivePerception": "passive Perception {value}",
+        "sense": {
+          "darkvision": "darkvision",
+          "blindsight": "blindsight",
+          "tremorsense": "tremorsense",
+          "truesight": "truesight"
+        },
+        "speed": {
+          "fly": "fly",
+          "swim": "swim",
+          "climb": "climb",
+          "burrow": "burrow",
+          "hover": "can hover"
+        }
+      },
       "skills": {
         "arc": "Arcana",
         "nat": "Nature",

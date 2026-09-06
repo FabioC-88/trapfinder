@@ -24,3 +24,17 @@
 .trapfinder-monster-list .monster-filter {
   width: 100%;
 }
+
+/* Recognition card in chat. The sidebar is narrow, so the default list indent and margins waste
+   most of the width they take. */
+ul.trapfinder-monster-card {
+  margin: 0.25rem 0;
+  padding-left: 1rem;
+  list-style: none;
+}
+
+ul.trapfinder-monster-card li {
+  margin-bottom: 0.15rem;
+  text-indent: -0.6rem;
+  padding-left: 0.6rem;
+}
