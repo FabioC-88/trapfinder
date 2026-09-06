@@ -21,6 +21,23 @@
       "screenAlert": {
         "name": "On-screen alert as well as chat",
         "hint": "When a PC notices something, also pop a brief notification on the owning player's screen. The whisper in chat is sent either way - this only adds a nudge, since a chat line is easy to miss mid-scene."
+      },
+      "secretDoorDefaultDC": {
+        "name": "Secret doors: default DC",
+        "hint": "Used by every secret door that has no DC of its own, so a freshly drawn one already works."
+      },
+      "secretDoorDefaultRange": {
+        "name": "Secret doors: default range",
+        "hint": "Distance in scene units within which a PC's passive Perception is checked against a secret door."
+      }
+    },
+    "secretDoor": {
+      "wallConfig": {
+        "legend": "Passive Detection",
+        "hint": "Only applies to walls whose door type is Secret. Leave a field empty to use the world default shown as its placeholder.",
+        "dc": "Detection DC",
+        "range": "Detection Range",
+        "message": "Message on Success"
       }
     },
     "passiveDetection": {

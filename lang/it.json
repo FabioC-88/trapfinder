@@ -21,6 +21,23 @@
       "screenAlert": {
         "name": "Avviso a schermo oltre alla chat",
         "hint": "Quando un PG nota qualcosa, mostra anche una breve notifica sullo schermo del giocatore che lo controlla. Il messaggio privato in chat parte comunque: questo aggiunge solo un richiamo, perché una riga di chat in mezzo alla scena sfugge facilmente."
+      },
+      "secretDoorDefaultDC": {
+        "name": "Porte segrete: CD di default",
+        "hint": "Usata da ogni porta segreta che non ha una CD propria, così una porta appena disegnata funziona già."
+      },
+      "secretDoorDefaultRange": {
+        "name": "Porte segrete: raggio di default",
+        "hint": "Distanza in unità di scena entro cui la percezione passiva di un PG viene confrontata con una porta segreta."
+      }
+    },
+    "secretDoor": {
+      "wallConfig": {
+        "legend": "Rilevamento passivo",
+        "hint": "Vale solo per i muri con tipo porta Segreta. Lascia un campo vuoto per usare il default del mondo, mostrato come suggerimento.",
+        "dc": "CD di rilevamento",
+        "range": "Raggio di rilevamento",
+        "message": "Messaggio alla riuscita"
       }
     },
     "passiveDetection": {

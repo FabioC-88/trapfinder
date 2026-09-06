@@ -5,6 +5,7 @@ import { SETTINGS } from "../../scripts/constants.js";
 import PassiveDetectionBehaviorType from "./passive-detection-behavior.js";
 import { migrateTrapDetectionBehaviors } from "./migration.js";
 import { collectRegionDetectables } from "./sources.js";
+import { registerWallConfigInjection } from "./wall-config.js";
 
 const TYPE_ID = "trapfinder.passiveDetection";
 
@@ -34,6 +35,24 @@ export default {
       config: false,
       type: Number,
       default: 0
+    });
+
+    game.settings.register(moduleId, SETTINGS.secretDoorDefaultDC, {
+      name: "DND5E_GM_TOOLKIT.settings.secretDoorDefaultDC.name",
+      hint: "DND5E_GM_TOOLKIT.settings.secretDoorDefaultDC.hint",
+      scope: "world",
+      config: true,
+      type: Number,
+      default: 15
+    });
+
+    game.settings.register(moduleId, SETTINGS.secretDoorDefaultRange, {
+      name: "DND5E_GM_TOOLKIT.settings.secretDoorDefaultRange.name",
+      hint: "DND5E_GM_TOOLKIT.settings.secretDoorDefaultRange.hint",
+      scope: "world",
+      config: true,
+      type: Number,
+      default: 10
     });
 
     // Unconditional (not gated behind the setting toggle): module.json declares this type under
@@ -74,6 +93,8 @@ export default {
     }
 
     if (!game.settings.get(moduleId, this.id)) return;
+
+    registerWallConfigInjection(moduleId);
 
     Hooks.on("moveToken", async (tokenDocument) => {
       if (!game.user.isGM) return;
