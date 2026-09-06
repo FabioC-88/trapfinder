@@ -57,6 +57,33 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
   per i tentativi successivi. Solo i click da DM vengono intercettati — per i giocatori il
   comportamento resta quello nativo di Foundry.
 
+- **Riconoscimento Mostri** (`monster-recognition`, disattivato di default) — quando il
+  combattimento comincia, ogni PG viene confrontato con ogni mostro ostile presente: conoscenza
+  passiva corretta per il tipo di creatura (Arcano/Natura/Religione/Storia, secondo il tipo del
+  PNG) contro CD **10 + Grado di Sfida**. Chi la supera riceve in chat quello che il suo
+  personaggio ricorda, raccontato a parole: *"È un gigante di taglia grande. Ci vede bene anche al
+  buio. Le sue ferite si richiudono da sole mentre stai ancora combattendo. Ha un olfatto
+  acutissimo. Attacca con morso e artiglio."* Niente numeri, niente termini di regolamento —
+  quello è il blocco statistiche, che ce l'hai già aperto tu. Ma le informazioni sotto sono vere:
+  sensi, velocità particolari, resistenze, immunità, vulnerabilità, linguaggi, attacchi e tratti
+  vengono letti dall'Actor che hai piazzato, quindi restano corretti anche per un mostro che hai
+  modificato o reskinnato, e funzionano pure per PNG che non sono nel database interno.
+  Il riconoscimento vale per tipo di creatura, non per singolo PNG: una volta riconosciuto
+  un Goblin, i Goblin successivi vengono riconosciuti sempre, senza controllo, con un messaggio
+  compatto (un click per rileggere la scheda). Il modulo include un database interno di ~60
+  mostri comuni che copre la sola **lore** — la parte che un blocco statistiche non ha — abbinata
+  per nome ai PNG già presenti nel mondo: dal pannello **Elenco Mostri** (in Configure Settings)
+  puoi correggere l'abbinamento, l'abilità e scrivere una descrizione personalizzata per ciascun
+  PNG. Un PNG ostile senza tipo risolvibile e senza correzione manuale
+  viene saltato con un avviso solo per te, mai in silenzio.
+
+  Se un giocatore vuole tentare un **tiro attivo** invece di affidarsi alla passiva, clicca
+  l'icona a forma di libro sul Token HUD del PNG: fa tirare al PG attualmente
+  controllato/selezionato la stessa abilità di conoscenza (tiro vero, pubblico in chat, con
+  dialog nativo per vantaggio/bonus — qui, a differenza del resto del modulo, il dado si vede
+  davvero perché il giocatore lo sta chiedendo esplicitamente). Se il PG ha già riconosciuto quel
+  tipo di mostro, niente tiro: arriva subito il messaggio compatto.
+
 ### Dove arrivano le notifiche
 
 Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è

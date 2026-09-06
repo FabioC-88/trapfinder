@@ -1,6 +1,7 @@
 import passiveDetection from "./passive-detection/index.js";
 import hiddenCreatures from "./hidden-creatures/index.js";
 import lockpicking from "./lockpicking/index.js";
+import monsterRecognition from "./monster-recognition/index.js";
 
 /**
  * Explicit registry of every tool shipped by this module.
@@ -11,5 +12,6 @@ import lockpicking from "./lockpicking/index.js";
 export const TOOLS = [
   passiveDetection,
   hiddenCreatures,
-  lockpicking
+  lockpicking,
+  monsterRecognition
 ];
