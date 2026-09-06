@@ -60,12 +60,14 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
 - **Riconoscimento Mostri** (`monster-recognition`, disattivato di default) — quando il
   combattimento comincia, ogni PG viene confrontato con ogni mostro ostile presente: conoscenza
   passiva corretta per il tipo di creatura (Arcano/Natura/Religione/Storia, secondo il tipo del
-  PNG) contro CD **10 + Grado di Sfida**. Chi la supera riceve in chat una scheda del mostro:
-  lore, sensi, velocità particolari (vola, scava, nuota), resistenze, immunità, vulnerabilità,
-  linguaggi, attacchi e i tratti **con il loro testo** — così "Rigenerazione" arriva insieme al
-  dettaglio che fuoco e acido la bloccano. La parte meccanica non è scritta a mano da nessuna
-  parte: viene letta dall'Actor che hai piazzato, quindi è corretta anche per un mostro che hai
-  modificato o reskinnato, e funziona pure per PNG che non sono nel database interno.
+  PNG) contro CD **10 + Grado di Sfida**. Chi la supera riceve in chat quello che il suo
+  personaggio ricorda, raccontato a parole: *"È un gigante di taglia grande. Ci vede bene anche al
+  buio. Le sue ferite si richiudono da sole mentre stai ancora combattendo. Ha un olfatto
+  acutissimo. Attacca con morso e artiglio."* Niente numeri, niente termini di regolamento —
+  quello è il blocco statistiche, che ce l'hai già aperto tu. Ma le informazioni sotto sono vere:
+  sensi, velocità particolari, resistenze, immunità, vulnerabilità, linguaggi, attacchi e tratti
+  vengono letti dall'Actor che hai piazzato, quindi restano corretti anche per un mostro che hai
+  modificato o reskinnato, e funzionano pure per PNG che non sono nel database interno.
   Il riconoscimento vale per tipo di creatura, non per singolo PNG: una volta riconosciuto
   un Goblin, i Goblin successivi vengono riconosciuti sempre, senza controllo, con un messaggio
   compatto (un click per rileggere la scheda). Il modulo include un database interno di ~60

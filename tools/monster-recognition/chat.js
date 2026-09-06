@@ -1,4 +1,5 @@
 import { detectionRecipients } from "../../core/recipients.js";
+import { joinList, narrativeBeats } from "./narrate.js";
 
 const TOAST_ACTION = "toast";
 
@@ -38,15 +39,22 @@ export async function sendRecognitionResult({ moduleId, pcActor, profile, outcom
   }
 }
 
+/**
+ * The closing line says why the character knows this, not which skill was compared against which
+ * DC. The numbers are the GM's business, and they only appear in the miss, which only the GM sees.
+ */
 function recognizedText({ pcActor, profile, checkMode }) {
-  const skillLabel = skillLabelFor(profile.skill);
   const key = checkMode === "active"
     ? "DND5E_GM_TOOLKIT.monsterRecognition.recognizedByActive"
     : "DND5E_GM_TOOLKIT.monsterRecognition.recognizedByPassive";
 
+  const reason = profile.skill
+    ? game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.prose.reason.${profile.skill}`)
+    : "";
+
   return `
     ${monsterCard(profile)}
-    <p class="hint">${game.i18n.format(key, { name: pcActor.name, skill: skillLabel, dc: profile.dc })}</p>
+    <p class="hint">${game.i18n.format(key, { name: pcActor.name, reason }).replace(/\s+/g, " ").trim()}</p>
   `;
 }
 
@@ -64,99 +72,72 @@ function knownText({ profile }) {
 }
 
 /**
- * What the character recalls: a header naming what kind of thing it is, the lore, then the facts
- * that change what a player does this round. The lore comes from the database (or the GM's own
- * text); everything below it is read live off the actor, so it is right even for a monster that
- * was reskinned, homebrewed, or never in the database at all.
+ * What the character recalls, written the way they would say it: the lore, then everything the
+ * actor itself knows about the creature turned into plain sentences. No numbers, no skill names,
+ * no rules terms - a stat block is what the GM has open, not what a memory sounds like.
  *
- * Rows with nothing in them are dropped rather than printed empty, the way a stat block does it.
+ * The lore comes from the database (or the GM's own text); every other sentence is derived live
+ * from the actor, so it stays true for a monster that was reskinned, homebrewed, or never in the
+ * database at all.
  */
 function monsterCard(profile) {
   const lore = profile.description
     ?? game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.noDescription");
 
-  // No CR here on purpose: it is a designer's number, not something a character recalls, and
-  // showing it would hand the table the monster's exact tier. The GM still sees it in the
-  // Monster List panel.
-  const header = game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.card.header", {
-    type: configLabel(CONFIG.DND5E?.creatureTypes, profile.type)
-      || game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.card.unknownType"),
-    size: configLabel(CONFIG.DND5E?.actorSizes, profile.size)
-  }).replace(/\s+/g, " ").trim();
-
-  const stats = profile.statblock ?? {};
-  const t = key => game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.${key}`);
-
-  const rows = [
-    [t("senses"), sensesLine(stats)],
-    [t("movement"), movementLine(stats)],
-    [t("vulnerabilities"), damageList(stats.vulnerabilities, CONFIG.DND5E?.damageTypes)],
-    [t("resistances"), damageList(stats.resistances, CONFIG.DND5E?.damageTypes)],
-    [t("immunities"), damageList(stats.immunities, CONFIG.DND5E?.damageTypes)],
-    [t("conditionImmunities"), damageList(stats.conditionImmunities, CONFIG.DND5E?.conditionTypes)],
-    [t("actions"), (stats.actions ?? []).join(", ")],
-    [t("languages"), damageList(stats.languages, CONFIG.DND5E?.languages)]
-  ].filter(([, value]) => value);
-
-  const list = rows.length
-    ? `<ul class="trapfinder-monster-card">${rows.map(([label, value]) =>
-      `<li><strong>${label}</strong>: ${foundry.utils.escapeHTML(value)}</li>`).join("")}</ul>`
-    : "";
+  const sentences = narrativeBeats(profile).map(beat => sentenceFor(beat)).filter(Boolean);
 
   return `
-    <p><strong>${foundry.utils.escapeHTML(profile.displayName)}</strong> — ${foundry.utils.escapeHTML(header)}</p>
+    <p><strong>${foundry.utils.escapeHTML(profile.displayName)}</strong></p>
     <p>${foundry.utils.escapeHTML(lore)}</p>
-    ${list}
-    ${traitsList(stats.traits, t("traits"))}
+    ${sentences.length ? `<p>${foundry.utils.escapeHTML(sentences.join(" "))}</p>` : ""}
   `;
 }
 
-/** Each trait gets its own line with its text: the name alone is rarely the useful half. */
-function traitsList(traits, label) {
-  if (!traits?.length) return "";
+/** @param {import("./narrate.js").NarrativeBeat} beat */
+function sentenceFor(beat) {
+  const key = `DND5E_GM_TOOLKIT.monsterRecognition.card.prose.${beat.key}`;
 
-  const items = traits.map(trait => {
-    const name = `<strong>${foundry.utils.escapeHTML(trait.name)}</strong>`;
-    const text = trait.description ? `: ${foundry.utils.escapeHTML(trait.description)}` : "";
-    return `<li>${name}${text}</li>`;
-  }).join("");
-
-  return `<p><strong>${label}</strong></p><ul class="trapfinder-monster-card">${items}</ul>`;
-}
-
-function sensesLine({ senses = [], specialSenses = [], passivePerception, sensesUnits }) {
-  const parts = senses.map(sense =>
-    `${game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.sense.${sense.key}`)} ${sense.value}${unitSuffix(sensesUnits)}`
-  );
-  parts.push(...specialSenses);
-
-  if (passivePerception) {
-    parts.push(game.i18n.format("DND5E_GM_TOOLKIT.monsterRecognition.card.passivePerception", {
-      value: passivePerception
-    }));
+  if (beat.type) {
+    return game.i18n.format(key, {
+      type: proseLabel("type", beat.type),
+      size: proseLabel("size", beat.size)
+    });
   }
 
-  return parts.join(", ");
+  if (beat.list) return game.i18n.format(key, { list: localizedList(beat) });
+
+  return game.i18n.localize(key);
 }
 
-function movementLine({ movement = [], hover, movementUnits }) {
-  const parts = movement.map(speed =>
-    `${game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.speed.${speed.key}`)} ${speed.value}${unitSuffix(movementUnits)}`
+/**
+ * Creature types and sizes are written out in this module's own translations rather than taken
+ * from CONFIG.DND5E: a sentence needs "un gigante"/"una bestia" with the right article, which a
+ * bare label cannot give.
+ */
+function proseLabel(group, key) {
+  if (!key) return "";
+  return game.i18n.localize(`DND5E_GM_TOOLKIT.monsterRecognition.card.prose.${group}.${key}`);
+}
+
+function localizedList(beat) {
+  const config = LIST_CONFIG[beat.key]?.() ?? null;
+  const values = beat.list.map(entry => (config ? configLabel(config, entry) || entry : entry));
+
+  const conjunction = game.i18n.localize(
+    `DND5E_GM_TOOLKIT.monsterRecognition.card.prose.${beat.key === "conditionImmunities" ? "or" : "and"}`
   );
-  if (hover) parts.push(game.i18n.localize("DND5E_GM_TOOLKIT.monsterRecognition.card.speed.hover"));
-  return parts.join(", ");
+
+  return joinList(beat.key === "attacks" ? values.map(value => value.toLowerCase()) : values, conjunction);
 }
 
-function unitSuffix(units) {
-  if (!units) return "";
-  const label = configLabel(CONFIG.DND5E?.movementUnits, units, "abbreviation");
-  return ` ${label || units}`;
-}
-
-/** @param {string[]} keys */
-function damageList(keys, config) {
-  return (keys ?? []).map(key => configLabel(config, key) || key).join(", ");
-}
+/** Read lazily: CONFIG.DND5E is not populated at import time. */
+const LIST_CONFIG = {
+  immunities: () => CONFIG.DND5E?.damageTypes,
+  resistances: () => CONFIG.DND5E?.damageTypes,
+  vulnerabilities: () => CONFIG.DND5E?.damageTypes,
+  conditionImmunities: () => CONFIG.DND5E?.conditionTypes,
+  languages: () => CONFIG.DND5E?.languages
+};
 
 /**
  * dnd5e has shipped these config entries as plain strings, as `{label}` objects, and (for

@@ -30,11 +30,16 @@ Riferimento: `docs/superpowers/specs/2026-09-06-riconoscimento-mostri-design.md`
 ## 3bis. Scheda meccanica letta dall'Actor
 
 - [ ] `tools/monster-recognition/statblock.js` (puro): `summarizeStatblock(actor)` → sensi,
-      percezione passiva, velocità diverse da quella a piedi, linguaggi, dr/di/dv/ci, tratti
-      (nome + testo) e azioni (solo nome), tutto come **chiavi grezze dnd5e**; più `plainText`
-      (strip HTML/enricher + troncamento) e `formatCR`
+      percezione passiva, velocità diverse da quella a piedi, linguaggi, dr/di/dv/ci, nomi dei
+      tratti e nomi degli attacchi, tutto come **chiavi grezze dnd5e**; più `formatCR`
+- [ ] `tools/monster-recognition/narrate.js` (puro): `narrativeBeats(profile)` → quali frasi
+      raccontare, con la mappa dei tratti comuni riconosciuti in inglese e in italiano; `joinList`
+- [ ] `tests/narrate.test.js`
 - [ ] `profile.js`: il profilo si porta dietro `type`, `size`, `cr` e `statblock`
 - [ ] `tests/statblock.test.js`: casi elencati nella spec
+- [ ] Il messaggio è **prosa**, senza numeri né termini di regolamento: la riga finale dice perché
+      il personaggio lo sa, non quale passiva ha battuto quale CD (i numeri restano nel whisper di
+      fallimento, che vede solo il DM)
 - [ ] Localizzazione delle chiavi grezze **solo** in `chat.js`, via `CONFIG.DND5E`
       (`damageTypes`, `conditionTypes`, `languages`, `creatureTypes`, `actorSizes`,
       `movementUnits`), con lettura tollerante delle tre forme che dnd5e ha usato negli anni

@@ -24,15 +24,9 @@
  * @property {string[]} immunities
  * @property {string[]} vulnerabilities
  * @property {string[]} conditionImmunities
- * @property {{name: string, description: string}[]} traits  passive features, with their text
- * @property {string[]} actions                           attack/action names
+ * @property {string[]} traits                            feature names
+ * @property {string[]} attacks                           weapon names
  */
-
-/**
- * Long enough for any SRD trait, short enough that one pathological homebrew feature cannot turn
- * the message into a page. Cut on a word boundary so it never ends mid-word.
- */
-const TRAIT_TEXT_LIMIT = 300;
 
 const SENSE_KEYS = ["darkvision", "blindsight", "tremorsense", "truesight"];
 const MOVEMENT_KEYS = ["walk", "fly", "swim", "climb", "burrow"];
@@ -85,66 +79,11 @@ export function summarizeStatblock(actor) {
     vulnerabilities: damageEntries(traits.dv),
     conditionImmunities: damageEntries(traits.ci),
 
-    // Traits carry their text, actions do not: "Regeneration" without "unless it takes fire or
-    // acid damage" is the one detail a player actually needed, while spelling out every attack's
-    // to-hit and damage would just reprint the sheet the GM already has open.
-    traits: items.filter(isPassiveTrait).map(item => ({
-      name: item.name,
-      description: plainText(item.system?.description?.value)
-    })),
-    actions: items.filter(isAction).map(item => item.name)
+    // Names only, no rules text: narrate.js turns the ones it recognizes into plain-language
+    // sentences, and a trait's raw text is exactly the stat-block voice this message avoids.
+    traits: items.filter(item => item?.type === "feat").map(item => item.name),
+    attacks: items.filter(item => item?.type === "weapon").map(item => item.name)
   };
-}
-
-/**
- * dnd5e stores descriptions as HTML. Chat would render those tags, and enriched references
- * (@UUID, @Damage) would show as raw markup, so both are reduced to their plain text.
- * @param {string} html
- * @returns {string}
- */
-export function plainText(html) {
-  if (typeof html !== "string" || !html) return "";
-
-  const text = html
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/(p|div|li|tr)>/gi, " ")
-    .replace(/<[^>]*>/g, "")
-    // Foundry enrichers: [[/damage 10]]{label} and @UUID[...]{label} - keep the label if there is
-    // one, otherwise the inner reference, which still reads better than the raw markup.
-    .replace(/\[\[[^\]]*\]\]\{([^}]*)\}/g, "$1")
-    .replace(/@\w+\[[^\]]*\]\{([^}]*)\}/g, "$1")
-    .replace(/@\w+\[([^\]]*)\]/g, "$1")
-    .replace(/\[\[([^\]]*)\]\]/g, "$1")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (text.length <= TRAIT_TEXT_LIMIT) return text;
-
-  const cut = text.slice(0, TRAIT_TEXT_LIMIT);
-  const lastSpace = cut.lastIndexOf(" ");
-  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim()}…`;
-}
-
-/**
- * A feature with no activation cost is something the creature simply has (Regeneration, Pack
- * Tactics, Magic Resistance); one with an activation cost is something it does on its turn.
- * Both matter to a player, but they answer different questions, so they are listed apart.
- */
-function isPassiveTrait(item) {
-  if (item?.type !== "feat") return false;
-  return !item.system?.activation?.type;
-}
-
-function isAction(item) {
-  if (item?.type === "weapon") return true;
-  if (item?.type !== "feat") return false;
-  return Boolean(item.system?.activation?.type);
 }
 
 /** dnd5e stores these as a Set in v3+, an array in older data, and may add free text in `custom`. */

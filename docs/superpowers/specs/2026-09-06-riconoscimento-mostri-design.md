@@ -90,31 +90,41 @@ Conseguenza: `tools/monster-recognition/statblock.js` restituisce **chiavi grezz
 `game.i18n` — ed è la parte dove un bug darebbe informazioni false al tavolo, quindi è la parte
 che merita i test.
 
-#### I tratti portano il loro testo, le azioni no
+#### Il messaggio è una prosa, non un blocco statistiche
 
-"Rigenerazione" senza "a meno che non subisca danni da fuoco o acido" è proprio il dettaglio che
-serviva. Quindi ogni tratto passivo compare con la sua descrizione (ripulita dall'HTML e dagli
-enricher di Foundry, troncata a 300 caratteri su un confine di parola per non farsi allagare da un
-singolo tratto homebrew fuori scala). Le azioni compaiono invece solo per nome: stampare tiro per
-colpire e dadi di danno di ogni attacco vorrebbe dire ristampare la scheda che il DM ha già
-aperta, mentre "Multiattacco, Morso, Artiglio" risponde già a "con cosa mi attacca".
+Prima versione di questa parte: righe etichettate ("Sensi: scurovisione 18 m", "Tratti:
+Rigenerazione: recupera 10 pf..."). Scartata al primo sguardo del DM, e a ragione — era la scheda
+del mostro travestita, mentre il messaggio deve essere **ciò che il personaggio ricorda**.
 
-#### Il GS non compare nel messaggio ai giocatori
+Quindi la scheda meccanica non si stampa: si racconta. "Ci vede bene anche al buio" al posto di
+"scurovisione 18 m", "attacca con morso e artigli" al posto di "Multiattacco, Morso, Artiglio",
+"le sue ferite si richiudono da sole" al posto del testo regolistico di Rigenerazione. Nel
+messaggio non compare **nessun numero, nessun nome di abilità, nessun termine di regolamento** —
+nemmeno nella riga di chiusura, che ora dice *perché* il personaggio lo sa ("per via delle storie
+e delle cronache che conosce") invece di quale passiva ha battuto quale CD.
 
-L'intestazione dice cosa è la creatura ("Gigante Grande"), non quanto vale sulla tabella di
-progettazione. Il Grado di Sfida è un numero da manuale, non qualcosa che un personaggio ricorda,
-e stamparlo consegnerebbe al tavolo la fascia esatta del mostro. Resta dov'è utile e legittimo:
-nella colonna GS del pannello **Elenco Mostri**, che vede solo il DM (lì i GS frazionari passano
-per `formatCR`, così `0.125` si legge `1/8`).
+I numeri restano dove servono davvero e dove li vede solo il DM: nel whisper di fallimento
+(abilità e CD, diagnostico) e nel pannello Elenco Mostri.
 
-Nota: la riga finale del messaggio riporta ancora la CD (`CD 15`), da cui il GS si ricava
-all'indietro conoscendo la formula. È rimasta deliberatamente, perché dice al giocatore quanto era
-difficile ciò che ha appena azzeccato; toglierla è una riga sola, se al tavolo dà fastidio.
+Struttura che ne consegue, coerente col resto del modulo: `statblock.js` estrae **chiavi grezze**
+dall'Actor, `narrate.js` decide **quali frasi** applicare (restando puro: nessun `game`, nessun
+`CONFIG`), `chat.js` le traduce e le unisce in un paragrafo.
 
-#### La velocità base a piedi non si stampa
+#### I tratti si riconoscono per nome, e quelli sconosciuti tacciono
 
-Ce l'hanno tutti: occuperebbe spazio togliendolo alle velocità che cambiano davvero una decisione
-tattica (vola, scava, nuota).
+Non si può narrativizzare a runtime un testo di regole arbitrario. Quindi `narrate.js` tiene una
+mappa dei tratti comuni (~35 voci) verso una frase in lingua parlata, riconoscendoli **sia in
+inglese sia in italiano** — un mondo che gira dnd5e localizzato funziona quanto uno in inglese.
+
+Un tratto fuori mappa viene **semplicemente omesso**, non stampato con le sue regole: meglio dire
+meno che rompere la voce del messaggio. Quando questo perde qualcosa di importante (un mostro
+homebrew costruito attorno al suo tratto firma), il rimedio esiste già ed è quello giusto: il DM
+scrive la descrizione personalizzata di quel mostro dal pannello, che ha comunque la precedenza
+su tutto.
+
+Per gli attacchi vale la stessa logica al contrario: bastano i nomi ("attacca con morso e
+artigli"), perché tiro per colpire e dadi di danno sono esattamente la scheda che il DM ha già
+aperta.
 
 ### Database interno con corrispondenza per nome, non un browser di compendio
 
@@ -272,8 +282,10 @@ tools/monster-recognition/
                              le descrizioni vivono nei file lang/*.json, come il resto del modulo)
   monster-database.js       logica pura: normalizeName, findMonsterByName, skillForType,
                              computeIdentificationDC, evaluateRecognition — testabile senza Foundry
-  statblock.js              logica pura: estrae sensi/difese/tratti/azioni dall'Actor come chiavi
-                             grezze dnd5e, ripulisce il testo dei tratti, formatta il GS
+  statblock.js              logica pura: estrae sensi/difese/tratti/attacchi dall'Actor come
+                             chiavi grezze dnd5e, formatta il GS per il pannello del DM
+  narrate.js                logica pura: decide quali frasi raccontare (mappa dei tratti comuni
+                             EN/IT), ed elenca "morso, artigli e coda" come parlerebbe una persona
   profile.js                risolve il profilo di riconoscimento di un Actor NPC (tocca Foundry:
                              flag, system.details) e gestisce il flag di memoria sul PG
   chat.js                   costruisce e invia i messaggi (completo / compatto / whisper fallimento)
@@ -317,9 +329,13 @@ Gira solo lato DM (`game.user.isGM`), come tutto il resto del modulo.
 
 Vitest su `tools/monster-recognition/statblock.js`: sensi presenti/assenti, percezione passiva
 mancante, velocità (esclusa quella a piedi), difese lette sia da `Set` (dnd5e v3+) sia da array,
-voci `custom` separate da punto e virgola, tratti con testo contro azioni per nome, `plainText`
-(tag HTML, enricher `[[/damage]]`/`@UUID`, entità, troncamento su confine di parola), `formatCR`
-sui GS frazionari, e un attore vuoto/malformato che non deve far esplodere niente.
+voci `custom` separate da punto e virgola, tratti contro attacchi, `formatCR` sui GS frazionari, e
+un attore vuoto/malformato che non deve far esplodere niente.
+
+Vitest su `tools/monster-recognition/narrate.js`: natura con e senza taglia, scurovisione normale
+contro quella a lunga gittata, tratti riconosciuti in entrambe le lingue, tratto sconosciuto che
+tace, frasi non ripetute, difese come chiavi grezze, la garanzia che **nessun numero** finisca nei
+beat, ed enumerazioni ("morso, artigli e coda").
 
 Vitest sulla parte pura di `tools/monster-recognition/monster-database.js`:
 

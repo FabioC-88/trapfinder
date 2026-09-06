@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCR, plainText, summarizeStatblock } from "../tools/monster-recognition/statblock.js";
+import { formatCR, summarizeStatblock } from "../tools/monster-recognition/statblock.js";
 
 /** Shaped like a dnd5e NPC actor, with only the paths this module reads. */
 function actor({ senses = {}, movement = {}, traits = {}, skills = {}, items = [] } = {}) {
@@ -90,69 +90,27 @@ describe("summarizeStatblock - difese", () => {
   });
 });
 
-describe("summarizeStatblock - tratti e azioni", () => {
+describe("summarizeStatblock - tratti e attacchi", () => {
   const items = [
-    {
-      name: "Rigenerazione",
-      type: "feat",
-      system: { activation: {}, description: { value: "<p>Recupera 10 pf all'inizio del suo turno.</p>" } }
-    },
+    { name: "Rigenerazione", type: "feat", system: {} },
     { name: "Olfatto Acuto", type: "feat", system: {} },
-    { name: "Multiattacco", type: "feat", system: { activation: { type: "action" } } },
     { name: "Morso", type: "weapon", system: {} },
+    { name: "Artiglio", type: "weapon", system: {} },
     { name: "Pozione di Guarigione", type: "consumable", system: {} }
   ];
 
-  it("separa ciò che la creatura ha da ciò che la creatura fa", () => {
+  it("separa i tratti dagli attacchi", () => {
     const result = summarizeStatblock(actor({ items }));
 
-    expect(result.traits.map(trait => trait.name)).toEqual(["Rigenerazione", "Olfatto Acuto"]);
-    expect(result.actions).toEqual(["Multiattacco", "Morso"]);
+    expect(result.traits).toEqual(["Rigenerazione", "Olfatto Acuto"]);
+    expect(result.attacks).toEqual(["Morso", "Artiglio"]);
   });
 
-  it("porta con sé il testo del tratto, che è la metà utile", () => {
+  it("ignora gli oggetti che non sono né tratti né armi", () => {
     const result = summarizeStatblock(actor({ items }));
 
-    expect(result.traits[0].description).toBe("Recupera 10 pf all'inizio del suo turno.");
-    expect(result.traits[1].description).toBe("");
-  });
-
-  it("ignora gli oggetti che non sono né tratti né attacchi", () => {
-    const result = summarizeStatblock(actor({ items }));
-
-    expect(result.traits.map(trait => trait.name)).not.toContain("Pozione di Guarigione");
-    expect(result.actions).not.toContain("Pozione di Guarigione");
-  });
-});
-
-describe("plainText", () => {
-  it("toglie i tag HTML e normalizza gli spazi", () => {
-    expect(plainText("<p>Prima riga.</p>\n<p>Seconda   riga.</p>")).toBe("Prima riga. Seconda riga.");
-    expect(plainText("Colpisce<br>e morde")).toBe("Colpisce e morde");
-  });
-
-  it("riduce gli enricher di Foundry al loro testo leggibile", () => {
-    expect(plainText("Subisce [[/damage 10 fire]]{10 danni da fuoco}")).toBe("Subisce 10 danni da fuoco");
-    expect(plainText("Vedi @UUID[Compendium.x.y]{Rigenerazione}")).toBe("Vedi Rigenerazione");
-  });
-
-  it("decodifica le entità HTML", () => {
-    expect(plainText("<p>fuoco &amp; acido</p>")).toBe("fuoco & acido");
-  });
-
-  it("tronca su un confine di parola, senza spezzarla", () => {
-    const long = `${"parola ".repeat(80)}fine`;
-    const result = plainText(long);
-
-    expect(result.length).toBeLessThanOrEqual(301);
-    expect(result.endsWith("…")).toBe(true);
-    expect(result).not.toContain("parol…");
-  });
-
-  it("non si rompe su input vuoto o non testuale", () => {
-    expect(plainText(undefined)).toBe("");
-    expect(plainText("")).toBe("");
-    expect(plainText(42)).toBe("");
+    expect(result.traits).not.toContain("Pozione di Guarigione");
+    expect(result.attacks).not.toContain("Pozione di Guarigione");
   });
 });
 
