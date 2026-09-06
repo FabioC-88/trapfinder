@@ -38,7 +38,7 @@ jobs:
       - name: Create Zip Archive
         run: |
           ZIP_NAME="trapfinder-${GITHUB_REF_NAME}.zip"
-          zip -r "$ZIP_NAME" module.json scripts tools lib lang templates styles README.md LICENSE
+          zip -r "$ZIP_NAME" module.json scripts core tools lib lang templates styles README.md LICENSE
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

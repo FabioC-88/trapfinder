@@ -1,11 +1,13 @@
 {
   "DND5E_GM_TOOLKIT": {
     "tools": {
-      "trapDetection": {
-        "title": "Trap Detection (passive Perception)",
-        "hint": "Draw a Region at a trap's true location, add the 'Trap Detection' behavior to set its DC and detection range, and get a private message whenever a PC's token comes within range - passive Perception vs the DC decides if they notice it. Notifies once per PC per trap.",
-        "spotted": "{name} notices something suspicious nearby (passive Perception meets/beats DC {dc}).",
-        "notSpotted": "{name} passes near a hidden trap without noticing it (DC {dc})."
+      "passiveDetection": {
+        "title": "Passive Detection (traps, clues, secret doors)",
+        "hint": "Draw a Region where something hidden really is, add the 'Passive Detection' behavior to set its skill, DC, range and the message the player gets. Whenever a PC comes within range, their passive score against the DC decides whether they notice it. Once per PC per spot. Secret doors are configured on the wall itself instead."
+      },
+      "hiddenCreatures": {
+        "title": "Hidden Creatures (passive Perception)",
+        "hint": "Mark an NPC's token as both hidden on the canvas and carrying the Hiding status, and every PC that comes within range is checked: their passive Perception against the creature's passive Stealth. Nothing is revealed - the player is told privately that they have noticed something. Once per PC until the creature hides again."
       },
       "lockpicking": {
         "title": "Lockpicking",
@@ -19,20 +21,83 @@
         "failure": "{name} fails to pick the lock."
       }
     },
-    "trapDetection": {
+    "settings": {
+      "screenAlert": {
+        "name": "On-screen alert as well as chat",
+        "hint": "When a PC notices something, also pop a brief notification on the owning player's screen. The whisper in chat is sent either way - this only adds a nudge, since a chat line is easy to miss mid-scene."
+      },
+      "secretDoorDefaultDC": {
+        "name": "Secret doors: default DC",
+        "hint": "Used by every secret door that has no DC of its own, so a freshly drawn one already works."
+      },
+      "secretDoorDefaultRange": {
+        "name": "Secret doors: default range",
+        "hint": "Distance in scene units within which a PC's passive Perception is checked against a secret door."
+      },
+      "creatureDetectionRange": {
+        "name": "Hidden creatures: detection range",
+        "hint": "Distance in scene units within which a PC's passive Perception is compared with a hidden creature's passive Stealth. Without a limit, a high passive would notice an ambush across the whole map."
+      }
+    },
+    "secretDoor": {
+      "wallConfig": {
+        "legend": "Passive Detection",
+        "hint": "Only applies to walls whose door type is Secret. Leave a field empty to use the world default shown as its placeholder.",
+        "dc": "Detection DC",
+        "range": "Detection Range",
+        "message": "Message on Success"
+      },
+      "spotted": "{name} spots something odd about this stretch of wall (passive Perception meets/beats DC {dc}).",
+      "notSpotted": "{name} passes a secret door without noticing it (DC {dc})."
+    },
+    "passiveDetection": {
       "behavior": {
-        "label": "Trap Detection",
+        "label": "Passive Detection",
         "FIELDS": {
           "dc": {
             "label": "Detection DC",
-            "hint": "The passive Perception a PC needs to meet or beat to notice this trap."
+            "hint": "The passive score (for whichever skill is chosen above) a PC needs to meet or beat to notice this."
           },
           "range": {
             "label": "Detection Range",
             "hint": "Distance (in scene units) from this Region's footprint within which a nearby PC triggers the check."
+          },
+          "skill": {
+            "label": "Passive Skill",
+            "hint": "Which passive the PC is checked on. Perception for something noticed in passing, Investigation for something that has to be pieced together."
+          },
+          "message": {
+            "label": "Message on Success",
+            "hint": "What the player is told when their PC notices this, e.g. 'One flagstone sits a finger lower than the others'. Leave empty for the generic line. Never shown on a failure."
+          },
+          "requiresSight": {
+            "label": "Requires Line of Sight",
+            "hint": "If set, a wall between the PC and this spot prevents detection. Turn off for something noticed by sound or smell around a corner."
           }
         }
+      },
+      "spotted": "{name} notices something suspicious nearby (passive check meets/beats DC {dc}).",
+      "notSpotted": "{name} passes close to something hidden without noticing it (DC {dc}).",
+      "skills": {
+        "prc": "Passive Perception",
+        "inv": "Passive Investigation"
+      },
+      "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format.",
+      "migrationFailed": "Passive Detection: {count} behavior(s) failed to convert, will retry next load.",
+      "migrationError": "Passive Detection: migration failed unexpectedly, see console for details."
+    },
+    "hiddenCreatures": {
+      "spotted": "{name} catches movement that should not be there (passive Perception meets/beats DC {dc}).",
+      "notSpotted": "{name} walks past something hidden and lying in wait (DC {dc}).",
+      "markerWarning": {
+        "needsHidden": "{name} is marked as Hiding but its token is still visible to players, so it will not be detected. Hide the token too.",
+        "needsStatus": "{name} is hidden from players but has no Hiding status, so it will not be detected. Add the status if it is meant to be lying in wait."
       }
+    },
+    "surprise": {
+      "title": "Surprised by the Ambush?",
+      "hint": "These PCs did not notice at least one hidden creature on this scene. Uncheck anyone who should not be surprised, then confirm. Apply this before rolling initiative - dnd5e grants the disadvantage at roll time.",
+      "confirm": "Mark as Surprised"
     }
   }
 }
