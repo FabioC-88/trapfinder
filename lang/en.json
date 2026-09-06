@@ -1,9 +1,9 @@
 {
   "DND5E_GM_TOOLKIT": {
     "tools": {
-      "trapDetection": {
-        "title": "Trap Detection (passive Perception)",
-        "hint": "Draw a Region at a trap's true location, add the 'Trap Detection' behavior to set its DC and detection range, and get a private message whenever a PC's token comes within range - passive Perception vs the DC decides if they notice it. Notifies once per PC per trap."
+      "passiveDetection": {
+        "title": "Passive Detection (traps, clues, secret doors)",
+        "hint": "Draw a Region where something hidden really is, add the 'Passive Detection' behavior to set its skill, DC, range and the message the player gets. Whenever a PC comes within range, their passive score against the DC decides whether they notice it. Once per PC per spot. Secret doors are configured on the wall itself instead."
       },
       "lockpicking": {
         "title": "Lockpicking",
@@ -23,9 +23,9 @@
         "hint": "When a PC notices something, also pop a brief notification on the owning player's screen. The whisper in chat is sent either way - this only adds a nudge, since a chat line is easy to miss mid-scene."
       }
     },
-    "trapDetection": {
+    "passiveDetection": {
       "behavior": {
-        "label": "Trap Detection",
+        "label": "Passive Detection",
         "FIELDS": {
           "dc": {
             "label": "Detection DC",
@@ -48,15 +48,14 @@
             "hint": "If set, a wall between the PC and this spot prevents detection. Turn off for something noticed by sound or smell around a corner."
           }
         }
-      }
-    },
-    "passiveDetection": {
+      },
       "spotted": "{name} notices something suspicious nearby (passive check meets/beats DC {dc}).",
       "notSpotted": "{name} passes close to something hidden without noticing it (DC {dc}).",
       "skills": {
         "prc": "Passive Perception",
         "inv": "Passive Investigation"
-      }
+      },
+      "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format."
     }
   }
 }

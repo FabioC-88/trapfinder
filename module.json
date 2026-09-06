@@ -36,7 +36,8 @@
   ],
   "documentTypes": {
     "RegionBehavior": {
-      "trapDetection": {}
+      "trapDetection": {},
+      "passiveDetection": {}
     }
   },
   "languages": [

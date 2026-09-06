@@ -1,17 +1,19 @@
 /**
- * Pure data container for a trap's detection settings (DC + detection range in scene units),
- * attached to a Region drawn at the trap's true physical footprint.
+ * Pure data container for a detection spot's settings (skill, DC, detection range in scene units),
+ * attached to a Region drawn at the detectable's true physical footprint - a trap, a hidden clue,
+ * anything a PC's passive score can notice from nearby.
  *
  * Deliberately does NOT implement _handleRegionEvent()/react to CONST.REGION_EVENTS: Foundry's
  * native region events (TOKEN_ENTER/EXIT/MOVE_WITHIN) only fire on entering/exiting the region's
- * *exact drawn shape*, which is too late for "a PC is approaching the trap" - no native
+ * *exact drawn shape*, which is too late for "a PC is approaching the spot" - no native
  * "within distance of a region" trigger exists. Detection is instead driven from the "moveToken"
- * hook in index.js, which reads dc/range directly off every region behavior of this type on the
- * scene and does its own distance math. This class only exists to give the GM a native config
- * form (via Foundry's auto-rendered RegionBehaviorConfig sheet) for setting those two values.
+ * hook in index.js, which collects every region behavior of this type on the scene via
+ * sources.js and runs them through the shared core/detection.js engine (distance, line of sight,
+ * the actual passive-vs-DC check). This class only exists to give the GM a native config form
+ * (via Foundry's auto-rendered RegionBehaviorConfig sheet) for setting those values.
  */
-export default class TrapDetectionRegionBehaviorType extends foundry.data.regionBehaviors.RegionBehaviorType {
-  static LOCALIZATION_PREFIXES = ["DND5E_GM_TOOLKIT.trapDetection.behavior"];
+export default class PassiveDetectionBehaviorType extends foundry.data.regionBehaviors.RegionBehaviorType {
+  static LOCALIZATION_PREFIXES = ["DND5E_GM_TOOLKIT.passiveDetection.behavior"];
 
   static defineSchema() {
     const { BooleanField, NumberField, StringField } = foundry.data.fields;

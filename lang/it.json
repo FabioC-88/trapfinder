@@ -1,9 +1,9 @@
 {
   "DND5E_GM_TOOLKIT": {
     "tools": {
-      "trapDetection": {
-        "title": "Rilevamento Trappole (Percezione passiva)",
-        "hint": "Disegna una Region nella vera posizione di una trappola, aggiungi il comportamento 'Trap Detection' per impostare CD e raggio di rilevamento, e ricevi un messaggio privato quando un token PG entra nel raggio - la percezione passiva contro la CD decide se se ne accorge. Avvisa una sola volta per PG per trappola."
+      "passiveDetection": {
+        "title": "Rilevamento passivo (trappole, indizi, porte segrete)",
+        "hint": "Disegna una Region dove si trova davvero qualcosa di nascosto, aggiungi il comportamento 'Rilevamento Passivo' per impostare abilità, CD, raggio e il messaggio che riceve il giocatore. Quando un PG entra nel raggio, la sua passiva contro la CD decide se se ne accorge. Una volta per PG per punto. Le porte segrete si configurano invece sul muro stesso."
       },
       "lockpicking": {
         "title": "Scasso Serrature",
@@ -23,9 +23,9 @@
         "hint": "Quando un PG nota qualcosa, mostra anche una breve notifica sullo schermo del giocatore che lo controlla. Il messaggio privato in chat parte comunque: questo aggiunge solo un richiamo, perché una riga di chat in mezzo alla scena sfugge facilmente."
       }
     },
-    "trapDetection": {
+    "passiveDetection": {
       "behavior": {
-        "label": "Rilevamento Trappola",
+        "label": "Rilevamento Passivo",
         "FIELDS": {
           "dc": {
             "label": "CD Rilevamento",
@@ -48,15 +48,14 @@
             "hint": "Se attivo, un muro tra il PG e questo punto impedisce il rilevamento. Disattivalo per qualcosa che si nota dall'odore o dal rumore dietro l'angolo."
           }
         }
-      }
-    },
-    "passiveDetection": {
+      },
       "spotted": "{name} nota qualcosa di sospetto nei paraggi (prova passiva pari o superiore a CD {dc}).",
       "notSpotted": "{name} passa vicino a qualcosa di nascosto senza accorgersene (CD {dc}).",
       "skills": {
         "prc": "Percezione passiva",
         "inv": "Indagare passivo"
-      }
+      },
+      "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato."
     }
   }
 }

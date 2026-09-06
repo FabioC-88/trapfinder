@@ -1,4 +1,4 @@
-import trapDetection from "./trap-detection/index.js";
+import passiveDetection from "./passive-detection/index.js";
 import lockpicking from "./lockpicking/index.js";
 
 /**
@@ -8,6 +8,6 @@ import lockpicking from "./lockpicking/index.js";
  * and importing it here.
  */
 export const TOOLS = [
-  trapDetection,
+  passiveDetection,
   lockpicking
 ];
