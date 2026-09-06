@@ -1656,7 +1656,16 @@ git commit -m "feat(passive-detection): campi di rilevamento nella configurazion
 
 - [ ] **Step 1: Aggiungere la sorgente dei muri**
 
-In `tools/passive-detection/sources.js`, aggiungere l'import e la funzione:
+In `tools/passive-detection/sources.js`, la task 6 ha già scritto in testa:
+
+```js
+import { closestPointInBounds } from "../../core/geometry.js";
+import { FLAGS } from "../../scripts/constants.js";
+```
+
+**Estendere queste due righe esistenti**, non aggiungerne di nuove: importare due volte lo stesso
+identificatore (`FLAGS`, `closestPointInBounds`) da moduli ES è un `SyntaxError`. Il risultato deve
+essere:
 
 ```js
 import { closestPointInBounds, closestPointOnSegment, pullBack } from "../../core/geometry.js";
@@ -2197,6 +2206,7 @@ const SURPRISED_STATUS = "surprised";
  */
 export function registerSurprisePrompt(moduleId) {
   Hooks.on("createCombat", async (combat, options, userId) => {
+    if (!game.user.isGM) return;
     if (game.user.id !== userId) return;
 
     const scene = combat.scene ?? canvas.scene;
