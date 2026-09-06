@@ -5,6 +5,10 @@
         "title": "Rilevamento passivo (trappole, indizi, porte segrete)",
         "hint": "Disegna una Region dove si trova davvero qualcosa di nascosto, aggiungi il comportamento 'Rilevamento Passivo' per impostare abilità, CD, raggio e il messaggio che riceve il giocatore. Quando un PG entra nel raggio, la sua passiva contro la CD decide se se ne accorge. Una volta per PG per punto. Le porte segrete si configurano invece sul muro stesso."
       },
+      "hiddenCreatures": {
+        "title": "Creature nascoste (percezione passiva)",
+        "hint": "Marca il token di un PNG sia come nascosto sulla canvas sia con lo status Nascosto, e ogni PG che entra nel raggio viene controllato: percezione passiva contro furtività passiva della creatura. Non viene rivelato nulla, al giocatore arriva in privato che ha notato qualcosa. Una volta per PG, finché la creatura non si ri-nasconde."
+      },
       "lockpicking": {
         "title": "Scasso Serrature",
         "hint": "Cliccando da DM su una porta chiusa a chiave si offre di tentare lo scasso con i Grimaldelli del PG attualmente controllato/selezionato, invece del comportamento silenzioso di default. La CD della serratura si imposta una volta per porta e viene ricordata.",
@@ -29,6 +33,10 @@
       "secretDoorDefaultRange": {
         "name": "Porte segrete: raggio di default",
         "hint": "Distanza in unità di scena entro cui la percezione passiva di un PG viene confrontata con una porta segreta."
+      },
+      "creatureDetectionRange": {
+        "name": "Creature nascoste: raggio di rilevamento",
+        "hint": "Distanza in unità di scena entro cui la percezione passiva di un PG viene confrontata con la furtività passiva di una creatura nascosta. Senza un limite, una passiva alta noterebbe un agguato dall'altro capo della mappa."
       }
     },
     "secretDoor": {
@@ -75,6 +83,10 @@
         "inv": "Indagare passivo"
       },
       "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato."
+    },
+    "hiddenCreatures": {
+      "spotted": "{name} coglie un movimento che non dovrebbe esserci (percezione passiva pari o superiore a CD {dc}).",
+      "notSpotted": "{name} passa accanto a qualcosa di nascosto e in agguato (CD {dc})."
     }
   }
 }

@@ -5,6 +5,10 @@
         "title": "Passive Detection (traps, clues, secret doors)",
         "hint": "Draw a Region where something hidden really is, add the 'Passive Detection' behavior to set its skill, DC, range and the message the player gets. Whenever a PC comes within range, their passive score against the DC decides whether they notice it. Once per PC per spot. Secret doors are configured on the wall itself instead."
       },
+      "hiddenCreatures": {
+        "title": "Hidden Creatures (passive Perception)",
+        "hint": "Mark an NPC's token as both hidden on the canvas and carrying the Hiding status, and every PC that comes within range is checked: their passive Perception against the creature's passive Stealth. Nothing is revealed - the player is told privately that they have noticed something. Once per PC until the creature hides again."
+      },
       "lockpicking": {
         "title": "Lockpicking",
         "hint": "Clicking a locked door as GM offers to attempt picking it with the currently controlled/selected PC's Thieves' Tools instead of the default silent 'locked' behavior. The lock's DC is set once per door and remembered.",
@@ -29,6 +33,10 @@
       "secretDoorDefaultRange": {
         "name": "Secret doors: default range",
         "hint": "Distance in scene units within which a PC's passive Perception is checked against a secret door."
+      },
+      "creatureDetectionRange": {
+        "name": "Hidden creatures: detection range",
+        "hint": "Distance in scene units within which a PC's passive Perception is compared with a hidden creature's passive Stealth. Without a limit, a high passive would notice an ambush across the whole map."
       }
     },
     "secretDoor": {
@@ -75,6 +83,10 @@
         "inv": "Passive Investigation"
       },
       "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format."
+    },
+    "hiddenCreatures": {
+      "spotted": "{name} catches movement that should not be there (passive Perception meets/beats DC {dc}).",
+      "notSpotted": "{name} walks past something hidden and lying in wait (DC {dc})."
     }
   }
 }
