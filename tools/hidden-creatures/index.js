@@ -3,6 +3,7 @@ import { isSightBlocked, sceneDistance } from "../../core/geometry.js";
 import { reportDetection } from "../../core/notify.js";
 import { FLAGS, SETTINGS } from "../../scripts/constants.js";
 import { HIDING_STATUS, collectCreatureDetectables, isHiddenCreature, tokenCenter } from "./sources.js";
+import { registerMarkerGuard } from "./marker-guard.js";
 
 /**
  * Passive Perception against a hidden creature's passive Stealth.
@@ -77,6 +78,8 @@ export default {
         await token?.unsetFlag(moduleId, FLAGS.detectedBy);
       }
     });
+
+    registerMarkerGuard();
   }
 };
 

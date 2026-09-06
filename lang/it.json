@@ -86,7 +86,11 @@
     },
     "hiddenCreatures": {
       "spotted": "{name} coglie un movimento che non dovrebbe esserci (percezione passiva pari o superiore a CD {dc}).",
-      "notSpotted": "{name} passa accanto a qualcosa di nascosto e in agguato (CD {dc})."
+      "notSpotted": "{name} passa accanto a qualcosa di nascosto e in agguato (CD {dc}).",
+      "markerWarning": {
+        "needsHidden": "{name} è marcato come Nascosto ma il suo token è ancora visibile ai giocatori, quindi non verrà rilevato. Nascondi anche il token.",
+        "needsStatus": "{name} è nascosto ai giocatori ma non ha lo status Nascosto, quindi non verrà rilevato. Aggiungi lo status se è in agguato."
+      }
     }
   }
 }

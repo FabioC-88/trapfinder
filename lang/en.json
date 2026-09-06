@@ -86,7 +86,11 @@
     },
     "hiddenCreatures": {
       "spotted": "{name} catches movement that should not be there (passive Perception meets/beats DC {dc}).",
-      "notSpotted": "{name} walks past something hidden and lying in wait (DC {dc})."
+      "notSpotted": "{name} walks past something hidden and lying in wait (DC {dc}).",
+      "markerWarning": {
+        "needsHidden": "{name} is marked as Hiding but its token is still visible to players, so it will not be detected. Hide the token too.",
+        "needsStatus": "{name} is hidden from players but has no Hiding status, so it will not be detected. Add the status if it is meant to be lying in wait."
+      }
     }
   }
 }
