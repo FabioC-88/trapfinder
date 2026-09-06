@@ -87,8 +87,11 @@ l'impostazione che ricorda se era attivo.
 2. Aggiungi le chiavi di traduzione in `lang/en.json` e `lang/it.json`.
 3. Importa e registra il nuovo strumento in `tools/index.js`:
    ```js
+   import passiveDetection from "./passive-detection/index.js";
+   import hiddenCreatures from "./hidden-creatures/index.js";
+   import lockpicking from "./lockpicking/index.js";
    import miaFunzionalita from "./mia-funzionalita/index.js";
-   export const TOOLS = [trapDetection, lockpicking, miaFunzionalita];
+   export const TOOLS = [passiveDetection, hiddenCreatures, lockpicking, miaFunzionalita];
    ```
 
 Se lo strumento nuovo è un **rilevamento passivo** non serve toccare `core/`: basta una funzione
