@@ -4,7 +4,7 @@ import { reportDetection } from "../../core/notify.js";
 import { SETTINGS } from "../../scripts/constants.js";
 import PassiveDetectionBehaviorType from "./passive-detection-behavior.js";
 import { migrateTrapDetectionBehaviors } from "./migration.js";
-import { collectRegionDetectables } from "./sources.js";
+import { collectRegionDetectables, collectSecretDoorDetectables } from "./sources.js";
 import { registerWallConfigInjection } from "./wall-config.js";
 
 const TYPE_ID = "trapfinder.passiveDetection";
@@ -111,9 +111,10 @@ export default {
         y: tokenDocument.y + ((tokenDocument.height * gridSize) / 2)
       };
 
-      const detectables = collectRegionDetectables({
-        scene, observerCenter, actor, moduleId, typeId: TYPE_ID
-      });
+      const detectables = [
+        ...collectRegionDetectables({ scene, observerCenter, actor, moduleId, typeId: TYPE_ID }),
+        ...collectSecretDoorDetectables({ scene, observerCenter, actor, moduleId })
+      ];
       if (!detectables.length) return;
 
       await runDetection({

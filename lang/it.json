@@ -38,7 +38,9 @@
         "dc": "CD di rilevamento",
         "range": "Raggio di rilevamento",
         "message": "Messaggio alla riuscita"
-      }
+      },
+      "spotted": "{name} nota qualcosa di strano in questo tratto di parete (percezione passiva pari o superiore a CD {dc}).",
+      "notSpotted": "{name} passa davanti a una porta segreta senza accorgersene (CD {dc})."
     },
     "passiveDetection": {
       "behavior": {

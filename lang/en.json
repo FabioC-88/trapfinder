@@ -38,7 +38,9 @@
         "dc": "Detection DC",
         "range": "Detection Range",
         "message": "Message on Success"
-      }
+      },
+      "spotted": "{name} spots something odd about this stretch of wall (passive Perception meets/beats DC {dc}).",
+      "notSpotted": "{name} passes a secret door without noticing it (DC {dc})."
     },
     "passiveDetection": {
       "behavior": {
