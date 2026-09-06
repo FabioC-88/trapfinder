@@ -1,12 +1,16 @@
-# Trapfinder (dnd5e)
+# GM Toolkit (dnd5e)
 
 Modulo Foundry VTT (v14+, `dnd5e` richiesto) con strumenti/automazioni per condurre la sessione —
 **non house rules** (nessuna variante di regola opzionale: per quelle vedi il modulo separato
-[dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules)). Ogni strumento vive nel proprio
-file, e si attiva/disattiva direttamente da **Configure Settings** (due semplici interruttori sotto
-"Trapfinder" — niente popup dedicato, sono solo due). **Dopo aver attivato/disattivato uno strumento,
-Foundry ti chiederà di ricaricare**: è necessario, alcune registrazioni (status/comportamenti/wrapper)
-avvengono una sola volta all'avvio.
+[dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules)). Ogni strumento vive nella
+propria cartella, e si attiva/disattiva da **Configure Settings**, sotto "GM Toolkit (dnd5e)":
+tre interruttori più quattro impostazioni, in una lista piatta senza popup dedicato. **Dopo aver
+attivato/disattivato uno strumento, Foundry ti chiederà di ricaricare**: è necessario, alcune
+registrazioni (comportamenti, wrapper, hook) avvengono una sola volta all'avvio.
+
+Il filo conduttore degli strumenti di rilevamento: **il modulo non tira mai i dadi**. Confronta
+valori passivi e ti dice l'esito, così i controlli che spezzerebbero il ritmo non arrivano mai al
+tavolo come richiesta di tirare.
 
 ## Installazione
 
@@ -23,12 +27,29 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
 
 ## Strumenti disponibili
 
-- **Rilevamento Trappole** (`trap-detection`, disattivato di default) — disegna una **Region** sul
-  layer Regions (invisibile ai giocatori) nella vera posizione della trappola, aggiungi ad essa il
-  comportamento "Trap Detection", imposta **CD** e **Raggio di rilevamento**. Da quel momento, ogni
-  volta che un token PG si avvicina entro quel raggio, ricevi un messaggio privato: la sua percezione
-  passiva (`system.skills.prc.passive`) contro la CD decide se se ne accorge. Un solo avviso per PG
-  per trappola (non si ripete se il gruppo passa avanti e indietro).
+- **Rilevamento passivo** (`passive-detection`, disattivato di default) — copre due contenitori
+  diversi per lo stesso concetto.
+
+  *Trappole e indizi*: disegna una **Region** sul layer Regions (invisibile ai giocatori) nella
+  vera posizione di ciò che è nascosto e aggiungile il comportamento "Rilevamento Passivo".
+  Imposti **abilità** (percezione o indagare), **CD**, **raggio**, un **messaggio** facoltativo e
+  se serve la **linea di vista**. Quando un token PG entra nel raggio, la sua passiva contro la CD
+  decide se se ne accorge. Un solo esito per PG per punto.
+
+  *Porte segrete*: non serve alcuna Region. Un muro con tipo porta **Segreta** partecipa da solo,
+  con la CD e il raggio di default che imposti una volta per il mondo; nella configurazione del
+  muro trovi i campi per sovrascriverli su quella singola porta e per scrivere un messaggio suo.
+  **La porta non viene mai rivelata**: parte solo la notifica, e cosa farne decide il giocatore.
+
+- **Creature nascoste** (`hidden-creatures`, disattivato di default) — percezione passiva del PG
+  contro la **furtività passiva** della creatura (10 + modificatore, letta al volo: nessun tiro,
+  niente da impostare sul PNG). Perché un token partecipi servono **entrambi** i marcatori: token
+  nascosto sulla canvas **e** status "Nascosto". Se ne metti uno solo il modulo te lo dice, invece
+  di non fare niente in silenzio. Il controllo è simmetrico: scatta anche quando è la creatura a
+  muoversi verso il gruppo. Alla creazione di un incontro, se ci sono agguatanti non individuati,
+  il modulo ti propone chi marcare come **Sorpreso** — con conferma, e prima che tu tiri
+  l'iniziativa, perché è al momento del tiro che dnd5e applica lo svantaggio.
+
 - **Scasso Serrature** (`lockpicking`, disattivato di default) — clicca una porta chiusa a chiave
   **come fai già normalmente**: invece del comportamento silenzioso di default (un suono e basta),
   compare la richiesta di tentare lo scasso con i Grimaldelli da Scasso del PG che hai attualmente
@@ -36,10 +57,23 @@ usa uno shim incluso, senza bisogno di installare nulla in più.
   per i tentativi successivi. Solo i click da DM vengono intercettati — per i giocatori il
   comportamento resta quello nativo di Foundry.
 
+### Dove arrivano le notifiche
+
+Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è
+attiva; il DM ne riceve copia. Chi **fallisce** non riceve niente: il fallimento lo vedi solo tu,
+perché dire a un giocatore che ha fallito gli dice già che c'era qualcosa da notare.
+
 **Nota**: "porta bloccata/sbarrata" (un ulteriore stato oltre chiusa/aperta/chiusa a chiave, che
 richiede di essere sfondata anche una volta scassinata) è rimandata a un incremento successivo — non
 ha alcun analogo nativo in Foundry e dipende dallo stesso meccanismo di intercettazione dei click
 usato per lo scasso, da validare al tavolo prima di estenderlo.
+
+### Aggiornare da una versione precedente
+
+Le Region trappola già disegnate vengono **convertite automaticamente** al primo avvio, e ricevi
+una notifica con quante ne sono state migrate. Devi però **riaccendere l'interruttore** una volta:
+lo strumento è passato da `trap-detection` a `passive-detection`, e con la chiave cambia anche
+l'impostazione che ricorda se era attivo.
 
 ## Aggiungere un nuovo strumento
 
@@ -57,6 +91,11 @@ usato per lo scasso, da validare al tavolo prima di estenderlo.
    export const TOOLS = [trapDetection, lockpicking, miaFunzionalita];
    ```
 
+Se lo strumento nuovo è un **rilevamento passivo** non serve toccare `core/`: basta una funzione
+che produca *rilevabili* (la forma è documentata in `core/detection.js`) e passarli a
+`runDetection`. Deduplica, raggio, linea di vista, confronto con la passiva e scelta dei
+destinatari sono già fatti.
+
 Non serve nessun bundler: Foundry carica i moduli ES direttamente, quindi il registro in
 `tools/index.js` è l'unico punto da aggiornare per collegare una nuova cartella.
 
@@ -65,10 +104,30 @@ Non serve nessun bundler: Foundry carica i moduli ES direttamente, quindi il reg
 ```
 module.json                        manifest Foundry
 scripts/main.js                    hook "init"/"ready": registra tutti gli strumenti
+scripts/constants.js               id del modulo, chiavi di impostazioni e flag
+core/                              codice condiviso fra strumenti (non è uno strumento)
+  detection.js                     la decisione: dedup, raggio, visuale, passiva vs CD
+  recipients.js                    chi riceve il messaggio in chat e chi l'avviso a schermo
+  geometry.js                      distanze e test di linea di vista
+  notify.js                        messaggio privato in chat e avviso via socket
 tools/<nome>/index.js              uno strumento per cartella
 lib/libwrapper-shim.js             shim ufficiale di libWrapper (MIT, vendored da ruipin/fvtt-lib-wrapper)
 lang/{en,it}.json                  traduzioni
+tests/                             test del solo core, girano con vitest
 ```
+
+`lib/` è riservato al codice di terzi vendorizzato; `core/` è codice nostro condiviso.
+
+## Test
+
+```
+npm install
+npm test
+```
+
+I test coprono **solo `core/`**, che è puro: la persistenza vi entra da callback, quindi si prova
+senza Foundry. Le sorgenti e le iniezioni di interfaccia si verificano in gioco. Niente bundler:
+`npm` serve solo ai test, Foundry continua a caricare i moduli ES direttamente.
 
 ## Release
 
@@ -78,3 +137,7 @@ Ogni push di un tag `v*` (es. `v0.2.0`) fa partire `.github/workflows/release.ym
 3. crea lo zip del pacchetto;
 4. pubblica una GitHub Release con `module.json` e lo zip allegati, pronti per il manifest URL
    sopra.
+
+Attenzione: lo step "Create Zip Archive" elenca **esplicitamente** le cartelle da includere. Una
+cartella nuova che non venga aggiunta a quell'elenco funziona in sviluppo e manca nella release,
+dove il modulo va in errore al primo import.
