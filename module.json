@@ -1,7 +1,7 @@
 {
   "id": "trapfinder",
   "title": "GM Toolkit (dnd5e)",
-  "description": "Strumenti/automazioni per condurre la sessione col sistema dnd5e: rilevamento passivo di trappole, indizi nascosti e porte segrete, rilevamento di creature nascoste con proposta di sorpresa, e scasso serrature. Automatizzano i controlli sulle passive senza fermare il tavolo per un tiro. Non sono house rules (varianti opzionali di regole), sono utility per il DM.",
+  "description": "Tools and automations for running dnd5e sessions: passive detection of traps, hidden clues and secret doors, detection of hidden creatures with a surprise proposal, lockpicking, and monster recognition. They automate passive checks without stopping the table for a roll. These are not house rules (optional rule variants): they are GM utilities.",
   "version": "0.0.4",
   "authors": [
     {
@@ -26,7 +26,7 @@
       {
         "id": "lib-wrapper",
         "type": "module",
-        "reason": "Se installato, il modulo lo usa per intercettare in modo sicuro il click sulle porte chiuse a chiave (funziona comunque anche senza, tramite uno shim incluso)."
+        "reason": "If installed, the module uses it to safely intercept clicks on locked doors (it still works without it, through a bundled shim)."
       }
     ]
   },

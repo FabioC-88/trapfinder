@@ -1,173 +1,174 @@
 # GM Toolkit (dnd5e)
 
-Modulo Foundry VTT (v14+, `dnd5e` richiesto) con strumenti/automazioni per condurre la sessione —
-**non house rules** (nessuna variante di regola opzionale: per quelle vedi il modulo separato
-[dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules)). Ogni strumento vive nella
-propria cartella, e si attiva/disattiva da **Configure Settings**, sotto "GM Toolkit (dnd5e)":
-tre interruttori più quattro impostazioni, in una lista piatta senza popup dedicato. **Dopo aver
-attivato/disattivato uno strumento, Foundry ti chiederà di ricaricare**: è necessario, alcune
-registrazioni (comportamenti, wrapper, hook) avvengono una sola volta all'avvio.
+A Foundry VTT module (v14+, requires `dnd5e`) with tools and automations for running the session —
+**not house rules** (no optional rule variants: for those see the separate
+[dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules) module). Each tool lives in its
+own folder and is switched on/off from **Configure Settings**, under "GM Toolkit (dnd5e)": one
+toggle per tool plus a few settings, in a flat list with no dedicated popup. **After switching a
+tool on or off, Foundry will ask you to reload**: it is required, because some registrations
+(behaviors, wrappers, hooks) happen only once at startup.
 
-Il filo conduttore degli strumenti di rilevamento: **il modulo non tira mai i dadi**. Confronta
-valori passivi e ti dice l'esito, così i controlli che spezzerebbero il ritmo non arrivano mai al
-tavolo come richiesta di tirare.
+The common thread of the detection tools: **the module never rolls dice**. It compares passive
+values and tells you the outcome, so checks that would break the pace never reach the table as a
+request to roll.
 
-## Installazione
+## Installation
 
-In Foundry, **Add-on Modules > Install Module**, incolla il manifest:
+In Foundry, **Add-on Modules > Install Module**, paste the manifest:
 
 ```
 https://github.com/FabioC-88/trapfinder/releases/latest/download/module.json
 ```
 
-Poi attiva il modulo nel mondo (richiede il sistema `dnd5e`). Se hai anche
-[libWrapper](https://foundryvtt.com/packages/lib-wrapper) installato, il modulo lo userà
-automaticamente per lo scasso serrature (compatibilità migliore con altri moduli); in caso contrario
-usa uno shim incluso, senza bisogno di installare nulla in più.
+Then enable the module in your world (requires the `dnd5e` system). If you also have
+[libWrapper](https://foundryvtt.com/packages/lib-wrapper) installed, the module will use it
+automatically for lockpicking (better compatibility with other modules); otherwise it uses a
+bundled shim, with nothing else to install.
 
-## Strumenti disponibili
+The module ships in English with a complete Italian localization.
 
-- **Rilevamento passivo** (`passive-detection`, disattivato di default) — copre due contenitori
-  diversi per lo stesso concetto.
+## Available tools
 
-  *Trappole e indizi*: disegna una **Region** sul layer Regions (invisibile ai giocatori) nella
-  vera posizione di ciò che è nascosto e aggiungile il comportamento "Rilevamento Passivo".
-  Imposti **abilità** (percezione o indagare), **CD**, **raggio**, un **messaggio** facoltativo e
-  se serve la **linea di vista**. Quando un token PG entra nel raggio, la sua passiva contro la CD
-  decide se se ne accorge. Un solo esito per PG per punto.
+- **Passive Detection** (`passive-detection`, off by default) — covers two different containers
+  for the same concept.
 
-  *Porte segrete*: non serve alcuna Region. Un muro con tipo porta **Segreta** partecipa da solo,
-  con la CD e il raggio di default che imposti una volta per il mondo; nella configurazione del
-  muro trovi i campi per sovrascriverli su quella singola porta e per scrivere un messaggio suo.
-  **La porta non viene mai rivelata**: parte solo la notifica, e cosa farne decide il giocatore.
+  *Traps and clues*: draw a **Region** on the Regions layer (invisible to players) at the true
+  location of what is hidden and add the "Passive Detection" behavior to it. You set the
+  **skill** (Perception or Investigation), **DC**, **range**, an optional **message**, and whether
+  **line of sight** is required. When a PC token comes within range, its passive score against the
+  DC decides whether it notices. One outcome per PC per spot.
 
-- **Creature nascoste** (`hidden-creatures`, disattivato di default) — percezione passiva del PG
-  contro la **furtività passiva** della creatura (10 + modificatore, letta al volo: nessun tiro,
-  niente da impostare sul PNG). Perché un token partecipi servono **entrambi** i marcatori: token
-  nascosto sulla canvas **e** status "Nascosto". Se ne metti uno solo il modulo te lo dice, invece
-  di non fare niente in silenzio. Il controllo è simmetrico: scatta anche quando è la creatura a
-  muoversi verso il gruppo. Alla creazione di un incontro, se ci sono agguatanti non individuati,
-  il modulo ti propone chi marcare come **Sorpreso** — con conferma, e prima che tu tiri
-  l'iniziativa, perché è al momento del tiro che dnd5e applica lo svantaggio.
+  *Secret doors*: no Region needed. A wall with door type **Secret** takes part on its own, using
+  the default DC and range you set once for the world; in the wall configuration you will find
+  fields to override them for that single door and to write a message of its own.
+  **The door is never revealed**: only the notification goes out, and what to do with it is up to
+  the player.
 
-- **Scasso Serrature** (`lockpicking`, disattivato di default) — clicca una porta chiusa a chiave
-  **come fai già normalmente**: invece del comportamento silenzioso di default (un suono e basta),
-  compare la richiesta di tentare lo scasso con i Grimaldelli da Scasso del PG che hai attualmente
-  controllato/selezionato. La prima volta su una porta ti chiede la CD della serratura e la ricorda
-  per i tentativi successivi. Solo i click da DM vengono intercettati — per i giocatori il
-  comportamento resta quello nativo di Foundry.
+- **Hidden Creatures** (`hidden-creatures`, off by default) — the PC's passive Perception against
+  the creature's **passive Stealth** (10 + modifier, read on the fly: no roll, nothing to set on
+  the NPC). For a token to take part it needs **both** markers: token hidden on the canvas **and**
+  the "Hidden" status. If you set only one, the module tells you, instead of silently doing
+  nothing. The check is symmetric: it also triggers when the creature is the one moving toward the
+  party. When an encounter is created, if there are undetected ambushers, the module proposes who
+  to mark as **Surprised** — with confirmation, and before you roll initiative, because dnd5e
+  applies the disadvantage at the moment of the roll.
 
-- **Riconoscimento Mostri** (`monster-recognition`, disattivato di default) — quando il
-  combattimento comincia, ogni PG viene confrontato con ogni mostro ostile presente: conoscenza
-  passiva corretta per il tipo di creatura (Arcano/Natura/Religione/Storia, secondo il tipo del
-  PNG) contro CD **10 + Grado di Sfida**. Chi la supera riceve in chat quello che il suo
-  personaggio ricorda, raccontato a parole: *"È un gigante di taglia grande. Ci vede bene anche al
-  buio. Le sue ferite si richiudono da sole mentre stai ancora combattendo. Ha un olfatto
-  acutissimo. Attacca con morso e artiglio."* Niente numeri, niente termini di regolamento —
-  quello è il blocco statistiche, che ce l'hai già aperto tu. Ma le informazioni sotto sono vere:
-  sensi, velocità particolari, resistenze, immunità, vulnerabilità, linguaggi, attacchi e tratti
-  vengono letti dall'Actor che hai piazzato, quindi restano corretti anche per un mostro che hai
-  modificato o reskinnato, e funzionano pure per PNG che non sono nel database interno.
-  Il riconoscimento vale per tipo di creatura, non per singolo PNG: una volta riconosciuto
-  un Goblin, i Goblin successivi vengono riconosciuti sempre, senza controllo, con un messaggio
-  compatto (un click per rileggere la scheda). Il modulo include un database interno di ~60
-  mostri comuni che copre la sola **lore** — la parte che un blocco statistiche non ha — abbinata
-  per nome ai PNG già presenti nel mondo: dal pannello **Elenco Mostri** (in Configure Settings)
-  puoi correggere l'abbinamento, l'abilità e scrivere una descrizione personalizzata per ciascun
-  PNG. Un PNG ostile senza tipo risolvibile e senza correzione manuale
-  viene saltato con un avviso solo per te, mai in silenzio.
+- **Lockpicking** (`lockpicking`, off by default) — click a locked door **as you already normally
+  do**: instead of the silent default behavior (just a sound), you get a prompt to attempt picking
+  the lock with the Thieves' Tools of the PC you currently control/have selected. The first time on
+  a door it asks you for the lock's DC and remembers it for later attempts. Only GM clicks are
+  intercepted — for players the behavior stays Foundry's native one.
 
-  Se un giocatore vuole tentare un **tiro attivo** invece di affidarsi alla passiva, clicca
-  l'icona a forma di libro sul Token HUD del PNG: fa tirare al PG attualmente
-  controllato/selezionato la stessa abilità di conoscenza (tiro vero, pubblico in chat, con
-  dialog nativo per vantaggio/bonus — qui, a differenza del resto del modulo, il dado si vede
-  davvero perché il giocatore lo sta chiedendo esplicitamente). Se il PG ha già riconosciuto quel
-  tipo di mostro, niente tiro: arriva subito il messaggio compatto.
+- **Monster Recognition** (`monster-recognition`, off by default) — when combat starts, every PC is
+  checked against every hostile monster present: the correct passive knowledge skill for the
+  creature type (Arcana/Nature/Religion/History, depending on the NPC's type) against DC
+  **10 + Challenge Rating**. Whoever meets it receives in chat what their character remembers, told
+  in words: *"It is a Large giant. It sees well even in the dark. Its wounds close on their own
+  while you are still fighting. It has a very keen sense of smell. It attacks with bite and claw."*
+  No numbers, no rules terms — that is the stat block, which you already have open. But the
+  information below is true: senses, special speeds, resistances, immunities, vulnerabilities,
+  languages, attacks and traits are read from the Actor you placed, so they stay correct even for a
+  monster you have modified or reskinned, and they also work for NPCs that are not in the internal
+  database.
+  Recognition applies per kind of creature, not per single NPC: once a Goblin has been recognized,
+  later Goblins are always recognized, without a check, with a compact message (one click to
+  reread the card). The module includes an internal database of common monsters that covers only
+  the **lore** — the part a stat block does not have — matched by name to the NPCs already in the
+  world: from the **Monster List** panel (in Configure Settings) you can fix the match, the skill,
+  and write a custom description for each NPC. A hostile NPC with no resolvable type and no manual
+  fix is skipped with a warning only for you, never silently.
 
-### Dove arrivano le notifiche
+  If a player wants to attempt an **active check** instead of relying on the passive, they click the
+  book icon on the NPC's Token HUD: it makes the currently controlled/selected PC roll the same
+  knowledge skill (a real roll, public in chat, with the native dialog for advantage/bonus — here,
+  unlike the rest of the module, the die is actually shown because the player is explicitly asking
+  for it). If the PC has already recognized that kind of monster, no roll: the compact message
+  arrives right away.
 
-Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è
-attiva; il DM ne riceve copia. Chi **fallisce** non riceve niente: il fallimento lo vedi solo tu,
-perché dire a un giocatore che ha fallito gli dice già che c'era qualcosa da notare.
+### Where notifications go
 
-**Nota**: "porta bloccata/sbarrata" (un ulteriore stato oltre chiusa/aperta/chiusa a chiave, che
-richiede di essere sfondata anche una volta scassinata) è rimandata a un incremento successivo — non
-ha alcun analogo nativo in Foundry e dipende dallo stesso meccanismo di intercettazione dei click
-usato per lo scasso, da validare al tavolo prima di estenderlo.
+Whoever **succeeds** receives a private chat message, plus an on-screen alert if the setting is on;
+the GM gets a copy. Whoever **fails** receives nothing: only you see the failure, because telling a
+player they failed already tells them there was something to notice.
 
-### Aggiornare da una versione precedente
+**Note**: "barred/stuck door" (a further state beyond closed/open/locked, which needs to be forced
+open even once unlocked) is deferred to a later increment — it has no native equivalent in Foundry
+and depends on the same click-interception mechanism used for lockpicking, which should be
+validated at the table before extending it.
 
-Le Region trappola già disegnate vengono **convertite automaticamente** al primo avvio, e ricevi
-una notifica con quante ne sono state migrate. Devi però **riaccendere l'interruttore** una volta:
-lo strumento è passato da `trap-detection` a `passive-detection`, e con la chiave cambia anche
-l'impostazione che ricorda se era attivo.
+### Upgrading from a previous version
 
-## Aggiungere un nuovo strumento
+Trap Regions already drawn are **converted automatically** on first startup, and you get a
+notification with how many were migrated. You do, however, have to **switch the toggle back on**
+once: the tool moved from `trap-detection` to `passive-detection`, and with the key the setting that
+remembers whether it was enabled changed too.
 
-1. Crea `tools/<nome>/index.js` che esporta `{ id, titleKey, hintKey, default: false, register(moduleId), onReady(moduleId) }`.
-   - `register(moduleId)` registra il toggle on/off (`game.settings.register`, `config: true`,
-     `requiresReload: true` — le registrazioni sotto girano una sola volta per caricamento pagina,
-     quindi un toggle a runtime richiede un reload) e, se serve toccare `CONFIG.*` prima che Foundry
-     inizializzi le impostazioni (es. status effect, Region Behavior custom), lo fa qui — non in
-     `onReady()`.
-   - `onReady(moduleId)` aggancia gli hook/API necessari, solo se il toggle è attivo.
-2. Aggiungi le chiavi di traduzione in `lang/en.json` e `lang/it.json`.
-3. Importa e registra il nuovo strumento in `tools/index.js`:
+## Adding a new tool
+
+1. Create `tools/<name>/index.js` exporting `{ id, titleKey, hintKey, default: false, register(moduleId), onReady(moduleId) }`.
+   - `register(moduleId)` registers the on/off toggle (`game.settings.register`, `config: true`,
+     `requiresReload: true` — the registrations below run only once per page load, so a runtime
+     toggle requires a reload) and, if it needs to touch `CONFIG.*` before Foundry initializes the
+     settings (e.g. status effects, custom Region Behaviors), does it here — not in `onReady()`.
+   - `onReady(moduleId)` hooks up the needed hooks/APIs, only if the toggle is on.
+2. Add the translation keys to `lang/en.json` (base language) and `lang/it.json`.
+3. Import and register the new tool in `tools/index.js`:
    ```js
    import passiveDetection from "./passive-detection/index.js";
    import hiddenCreatures from "./hidden-creatures/index.js";
    import lockpicking from "./lockpicking/index.js";
-   import miaFunzionalita from "./mia-funzionalita/index.js";
-   export const TOOLS = [passiveDetection, hiddenCreatures, lockpicking, miaFunzionalita];
+   import myFeature from "./my-feature/index.js";
+   export const TOOLS = [passiveDetection, hiddenCreatures, lockpicking, myFeature];
    ```
 
-Se lo strumento nuovo è un **rilevamento passivo** non serve toccare `core/`: basta una funzione
-che produca *rilevabili* (la forma è documentata in `core/detection.js`) e passarli a
-`runDetection`. Deduplica, raggio, linea di vista, confronto con la passiva e scelta dei
-destinatari sono già fatti.
+If the new tool is a **passive detection** you do not need to touch `core/`: a function that
+produces *detectables* (the shape is documented in `core/detection.js`) and passes them to
+`runDetection` is enough. Deduplication, range, line of sight, comparison with the passive and
+choice of recipients are already done.
 
-Non serve nessun bundler: Foundry carica i moduli ES direttamente, quindi il registro in
-`tools/index.js` è l'unico punto da aggiornare per collegare una nuova cartella.
+No bundler needed: Foundry loads ES modules directly, so the registry in `tools/index.js` is the
+only place to update to hook up a new folder.
 
-## Struttura
+## Structure
 
 ```
-module.json                        manifest Foundry
-scripts/main.js                    hook "init"/"ready": registra tutti gli strumenti
-scripts/constants.js               id del modulo, chiavi di impostazioni e flag
-core/                              codice condiviso fra strumenti (non è uno strumento)
-  detection.js                     la decisione: dedup, raggio, visuale, passiva vs CD
-  recipients.js                    chi riceve il messaggio in chat e chi l'avviso a schermo
-  geometry.js                      distanze e test di linea di vista
-  notify.js                        messaggio privato in chat e avviso via socket
-tools/<nome>/index.js              uno strumento per cartella
-lib/libwrapper-shim.js             shim ufficiale di libWrapper (MIT, vendored da ruipin/fvtt-lib-wrapper)
-lang/{en,it}.json                  traduzioni
-tests/                             test del solo core, girano con vitest
+module.json                        Foundry manifest
+scripts/main.js                    "init"/"ready" hooks: registers all tools
+scripts/constants.js               module id, setting and flag keys
+core/                              code shared between tools (not a tool itself)
+  detection.js                     the decision: dedup, range, sight, passive vs DC
+  recipients.js                    who gets the chat message and who the on-screen alert
+  geometry.js                      distances and line-of-sight tests
+  notify.js                        private chat message and alert via socket
+tools/<name>/index.js              one tool per folder
+lib/libwrapper-shim.js             official libWrapper shim (MIT, vendored from ruipin/fvtt-lib-wrapper)
+lang/{en,it}.json                  translations (English is the base language)
+tests/                             tests of the pure code, run with vitest
 ```
 
-`lib/` è riservato al codice di terzi vendorizzato; `core/` è codice nostro condiviso.
+`lib/` is reserved for vendored third-party code; `core/` is our own shared code.
 
-## Test
+## Tests
 
 ```
 npm install
 npm test
 ```
 
-I test coprono **solo `core/`**, che è puro: la persistenza vi entra da callback, quindi si prova
-senza Foundry. Le sorgenti e le iniezioni di interfaccia si verificano in gioco. Niente bundler:
-`npm` serve solo ai test, Foundry continua a caricare i moduli ES direttamente.
+The tests cover the **pure** code — `core/` and the pure parts of the tools — where persistence
+comes in through callbacks, so it can be tested without Foundry. Sources and interface injections
+are verified in play. No bundler: `npm` is only for the tests, Foundry keeps loading the ES modules
+directly.
 
 ## Release
 
-Ogni push di un tag `v*` (es. `v0.2.0`) fa partire `.github/workflows/release.yml`, che:
-1. aggiorna `version` e `download` in `module.json` in base al tag;
-2. committa `module.json` su `main`;
-3. crea lo zip del pacchetto;
-4. pubblica una GitHub Release con `module.json` e lo zip allegati, pronti per il manifest URL
-   sopra.
+Every push of a `v*` tag (e.g. `v0.2.0`) triggers `.github/workflows/release.yml`, which:
+1. updates `version` and `download` in `module.json` based on the tag;
+2. commits `module.json` to `main`;
+3. creates the package zip;
+4. publishes a GitHub Release with `module.json` and the zip attached, ready for the manifest URL
+   above.
 
-Attenzione: lo step "Create Zip Archive" elenca **esplicitamente** le cartelle da includere. Una
-cartella nuova che non venga aggiunta a quell'elenco funziona in sviluppo e manca nella release,
-dove il modulo va in errore al primo import.
+Watch out: the "Create Zip Archive" step lists the folders to include **explicitly**. A new
+top-level folder that is not added to that list works in development and is missing from the
+release, where the module errors on the first import.

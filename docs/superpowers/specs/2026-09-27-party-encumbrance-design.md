@@ -1,303 +1,305 @@
-# Ingombro della cassa comune — design
+# Party stash encumbrance — design
 
-Data: 2026-09-27
-Stato: approvato in brainstorming (domande poste e risolte in chat), da tradurre in piano di
-implementazione
+Date: 2026-09-27
+Status: approved in brainstorming (questions asked and settled in chat), to be turned into an
+implementation plan
 
-## Obiettivo
+## Goal
 
-Il party usa un attore **Gruppo** di dnd5e come cassa comune (monete, equipaggiamento da vendere).
-In dnd5e il Gruppo non ha un ingombro proprio: gli oggetti che contiene non pesano su nessuno, come
-una borsa senza fondo. Nelle regole invece qualcuno deve portarli.
+The party uses a dnd5e **Group** actor as a shared stash (coins, gear to sell). In dnd5e the Group
+has no encumbrance of its own: the items it holds weigh on nobody, like a bottomless bag. By the
+rules, though, somebody has to carry them.
 
-Lo strumento fa ricadere il peso della cassa sui membri del Gruppo, in una di tre modalità scelte
-dal DM sulla scheda Gruppo, e permette di limitare la distribuzione a un sottoinsieme di membri
-(es. solo il mulo da soma, o solo il guerriero e il barbaro).
+The tool makes the stash's weight fall on the Group's members, in one of three modes chosen by the
+GM on the Group sheet, and lets the GM restrict the distribution to a subset of members (e.g. only
+the pack mule, or only the fighter and the barbarian).
 
-Non è una house rule: non cambia una regola, fa valere quella vera. Per questo vive nel GM Toolkit e
-non in `dnd5e-house-rules`.
+It is not a house rule: it does not change a rule, it enforces the real one. That is why it lives in
+the GM Toolkit and not in `dnd5e-house-rules`.
 
-## Ambito
+## Scope
 
-Dentro:
+In:
 
-- Nuovo strumento `party-encumbrance` (cartella `tools/party-encumbrance/`), con interruttore on/off
-  in Configure Settings, disattivato di default, `requiresReload: true` come gli altri.
-- Quota **virtuale**: gli oggetti restano nel Gruppo, a ogni portatore viene sommata al volo la sua
-  parte di peso nel calcolo dell'ingombro. Niente viene scritto sui PG.
-- Tre modalità di distribuzione più "Nessuna", scelte per singolo Gruppo dalla sua scheda.
-- Scelta dei portatori per singolo membro, dalla scheda Gruppo.
-- Tooltip sulla barra d'ingombro di PG e PNG che spiega quanta parte arriva dalla cassa.
-- Stato di ingombro (effetti nativi di dnd5e) coerente con la quota.
-- Lingua base inglese (`lang/en.json`), localizzazione italiana completa (`lang/it.json`), e un test
-  che verifica l'allineamento delle chiavi fra le due lingue.
+- New tool `party-encumbrance` (folder `tools/party-encumbrance/`), with an on/off toggle in
+  Configure Settings, off by default, `requiresReload: true` like the others.
+- **Virtual** share: the items stay in the Group, each carrier gets its part of the weight added on
+  the fly in the encumbrance calculation. Nothing is written to the PCs.
+- Three distribution modes plus "None", chosen per Group from its sheet.
+- Choice of carriers per member, from the Group sheet.
+- Tooltip on PC and NPC encumbrance bars explaining how much comes from the stash.
+- Encumbrance status (dnd5e's native effects) consistent with the share.
+- English base language (`lang/en.json`), complete Italian localization (`lang/it.json`), and a
+  test that checks the keys stay aligned between the two languages.
 
-Fuori:
+Out:
 
-- **Veicoli** come portatori. dnd5e ha già la sua funzione nativa per il carro: un Veicolo membro
-  del Gruppo impostato come "veicolo primario", con l'inventario del Gruppo che punta al veicolo e la
-  capacità data dagli animali da tiro. I Veicoli non compaiono fra i portatori e non ricevono quota.
-- Soglie della regola **Variante** d'ingombro nel calcolo del "carico disponibile". Il mondo usa la
-  regola Standard: il carico disponibile si misura sulla capacità massima. Gli status della Variante
-  restano comunque corretti, perché li applica dnd5e sul valore finale.
-- Spostamento fisico degli oggetti dal Gruppo ai PG.
+- **Vehicles** as carriers. dnd5e already has its own native feature for a cart: a Vehicle member of
+  the Group set as "primary vehicle", with the Group's inventory pointing at the vehicle and the
+  capacity given by the draft animals. Vehicles are not listed among carriers and get no share.
+- The **Variant** encumbrance thresholds in the "available capacity" calculation. The world uses
+  the Standard rule: available capacity is measured against maximum capacity. Variant statuses
+  still come out right, because dnd5e applies them on the final value.
+- Physically moving items from the Group to the PCs.
 
-## Compatibilità verificata
+## Verified compatibility
 
-Letto il sorgente di dnd5e **5.3.3** e **6.0.5** (entrambi compatibili con Foundry v14): i punti di
-aggancio sotto sono identici nelle due versioni.
+Read the source of dnd5e **5.3.3** and **6.0.5** (both compatible with Foundry v14): the hook
+points below are identical in the two versions.
 
-- `dnd5e.dataModels.actor.AttributesFields.prepareEncumbrance` (statico) calcola l'ingombro. È
-  chiamato come `AttributesFields.prepareEncumbrance.call(this, rollData)` da `CharacterData`,
-  `NPCData` e `VehicleData#prepareDerivedData`, quindi sostituire la proprietà statica ha effetto
-  su tutte le chiamate. Scrive `encumbrance.value`, `thresholds`, `max`, `mod`, `stops`, `pct`,
-  `encumbered`. Nessun altro calcolo derivato legge `encumbrance`: la riduzione di velocità passa
-  dagli effetti di stato.
-- `Actor5e#updateEncumbrance()` crea/aggiorna/cancella l'effetto di stato d'ingombro in base a
-  `encumbrance.value` e alle soglie. dnd5e la chiama solo quando cambiano l'attore o i suoi
-  oggetti, e solo sul client di chi ha fatto la modifica.
-- `GroupData.members` è un array di `{ actor }` già filtrato (attori mancanti, gruppi annidati,
-  duplicati) in `prepareBaseData`.
-- `GroupActorSheet` (ApplicationV2): nella scheda Inventario c'è una colonna laterale con una card
-  `.encumbrance.card[data-uuid]` per ogni membro (Veicolo primario escluso se l'inventario punta a
-  lui), con la barra nativa letta da `actor.system.attributes.encumbrance`.
-- Il flag `dnd5e.inventorySource` del Gruppo (`"group"` o `"vehicle"`) decide se l'inventario
-  mostrato è quello del Gruppo o del veicolo primario.
+- `dnd5e.dataModels.actor.AttributesFields.prepareEncumbrance` (static) computes encumbrance. It is
+  called as `AttributesFields.prepareEncumbrance.call(this, rollData)` from `CharacterData`,
+  `NPCData` and `VehicleData#prepareDerivedData`, so replacing the static property affects every
+  call. It writes `encumbrance.value`, `thresholds`, `max`, `mod`, `stops`, `pct`, `encumbered`. No
+  other derived calculation reads `encumbrance`: the speed reduction goes through status effects.
+- `Actor5e#updateEncumbrance()` creates/updates/deletes the encumbrance status effect based on
+  `encumbrance.value` and the thresholds. dnd5e calls it only when the actor or its items change,
+  and only on the client of whoever made the change.
+- `GroupData.members` is an array of `{ actor }` already filtered (missing actors, nested groups,
+  duplicates) in `prepareBaseData`.
+- `GroupActorSheet` (ApplicationV2): the Inventory tab has a sidebar with a
+  `.encumbrance.card[data-uuid]` card for each member (the primary Vehicle is excluded if the
+  inventory points at it), with the native bar read from `actor.system.attributes.encumbrance`.
+- The Group's `dnd5e.inventorySource` flag (`"group"` or `"vehicle"`) decides whether the inventory
+  shown is the Group's or the primary vehicle's.
 
-## Decisioni e loro motivazione
+## Decisions and their rationale
 
-### Quota calcolata al volo, non Effetto Attivo né spostamento
+### Share computed on the fly, not an Active Effect nor a move
 
-Tre alternative valutate:
+Three alternatives considered:
 
-1. **Wrapper su `prepareEncumbrance`** (scelta). Dopo il calcolo originale si aggiunge la quota a
-   `encumbrance.value` e si ricalcolano `pct` ed `encumbered`. È dato derivato: si ricalcola da solo,
-   ogni client ottiene lo stesso risultato dagli stessi dati, spegnere lo strumento riporta tutto al
-   nativo senza pulizia.
-2. **Effetto Attivo sui membri.** dnd5e non ha un campo "peso extra": si potrebbe solo abbassare la
-   capacità, e la barra mostrerebbe numeri falsi. In più andrebbero scritti e tenuti sincronizzati
-   documenti su ogni PG.
-3. **Spostare gli oggetti nei PG.** Non è ciò che si vuole: la cassa comune deve restare.
+1. **Wrapper on `prepareEncumbrance`** (chosen). After the original calculation, the share is added
+   to `encumbrance.value` and `pct` and `encumbered` are recomputed. It is derived data: it
+   recomputes by itself, every client gets the same result from the same data, and switching the
+   tool off brings everything back to native with no cleanup.
+2. **Active Effect on the members.** dnd5e has no "extra weight" field: you could only lower the
+   capacity, and the bar would show false numbers. On top of that, documents would have to be
+   written and kept in sync on every PC.
+3. **Moving the items into the PCs.** Not what is wanted: the shared stash must remain.
 
-Il wrapper passa da libWrapper (o dallo shim già incluso in `lib/`), come lo scasso serrature.
-Tipo `WRAPPER`: il calcolo originale viene sempre eseguito per primo, così un errore dello strumento
-non può impedire a dnd5e di calcolare l'ingombro. Target:
-`dnd5e.dataModels.actor.AttributesFields.prepareEncumbrance`. È un metodo statico: va verificato in
-Foundry che libWrapper e lo shim lo avvolgano correttamente. Se non ci riescono, il ripiego è
-sostituire la proprietà statica a mano, conservando l'originale.
+The wrapper goes through libWrapper (or the shim already included in `lib/`), like lockpicking.
+Type `WRAPPER`: the original calculation always runs first, so an error in the tool can never stop
+dnd5e from computing encumbrance. Target:
+`dnd5e.dataModels.actor.AttributesFields.prepareEncumbrance`. It is a static method: it must be
+verified in Foundry that libWrapper and the shim wrap it correctly. If they cannot, the fallback is
+replacing the static property by hand, keeping the original.
 
-### Una scelta per singolo Gruppo, non solo il Gruppo principale
+### One choice per Group, not only the primary Group
 
-La modalità vive su ogni Gruppo, con `none` come default. Funziona anche se il DM non ha impostato
-il Gruppo principale di dnd5e, e non serve un interruttore separato: "Nessuna" è la posizione spenta.
-Un attore che sta in più Gruppi attivi riceve la somma delle quote.
+The mode lives on each Group, with `none` as default. It works even if the GM has not set dnd5e's
+primary party, and no separate toggle is needed: "None" is the off position. An actor that belongs
+to several active Groups gets the sum of the shares.
 
-### Si esclude, non si include
+### Exclude, don't include
 
-Il flag conserva i membri **esclusi**, non i portatori. Di default portano tutti (il caso comune non
-richiede nessuna configurazione); per dare tutto al mulo si tolgono le spunte agli altri. Se nessuno
-porta, il peso non viene distribuito e la scheda lo dice: niente ripiego silenzioso su "tutti",
-coerente con il resto del modulo.
+The flag stores the **excluded** members, not the carriers. By default everybody carries (the
+common case needs no configuration); to give everything to the mule you untick the others. If
+nobody carries, the weight is not distributed and the sheet says so: no silent fallback to
+"everyone", consistent with the rest of the module.
 
-### Solo il DM configura
+### Only the GM configures
 
-Il menu della modalità e le spunte dei portatori sono modificabili solo dal DM. I giocatori vedono le
-stesse informazioni in sola lettura. Evita che la distribuzione cambi a metà sessione senza che il
-DM se ne accorga.
+The mode menu and the carrier checkboxes can be changed only by the GM. Players see the same
+information read-only. This prevents the distribution from changing mid-session without the GM
+noticing.
 
-### "Carico disponibile" si misura sulla capacità massima
+### "Available capacity" is measured against maximum capacity
 
-Il mondo usa la regola d'ingombro Standard: l'unica soglia che conta è la capacità massima
-(`thresholds.maximum`, 15 × FOR per taglia media). Disponibile = `max(0, capacità − peso proprio)`.
+The world uses the Standard encumbrance rule: the only threshold that matters is maximum capacity
+(`thresholds.maximum`, 15 × STR for a Medium creature). Available = `max(0, capacity − own weight)`.
 
-### Se sono tutti pieni, si passa a "capacità massima"
+### If everybody is full, fall back to "maximum capacity"
 
-In modalità "carico disponibile", se la somma dei disponibili è 0 la formula dividerebbe per zero e il
-peso sparirebbe. Si usa allora la ripartizione per capacità massima: tutti vanno oltre in proporzione,
-che è ciò che succede davvero a un party sovraccarico.
+In "available capacity" mode, if the sum of the available capacities is 0 the formula would divide
+by zero and the weight would vanish. Distribution by maximum capacity is used instead: everybody goes
+over proportionally, which is what really happens to an overloaded party.
 
-## Architettura
+## Architecture
 
 ```
 tools/party-encumbrance/
-  index.js                  registrazione dello strumento (toggle, onReady)
-  allocate.js               funzione pura: peso cassa + portatori + modalità → quote
-  stash.js                  peso della cassa di un Gruppo; lettura del flag; elenco portatori
-  encumbrance-wrapper.js    wrapper su prepareEncumbrance
-  refresh.js                ricalcolo delle quote e aggiornamento degli attori interessati
-  group-sheet.js            controlli sulla scheda Gruppo
-  actor-sheet.js            tooltip sulla barra d'ingombro di PG e PNG
+  index.js                  tool registration (toggle, onReady)
+  allocate.js               pure function: stash weight + carriers + mode → shares
+  stash.js                  a Group's stash weight; flag reading; carrier list
+  encumbrance-wrapper.js    wrapper on prepareEncumbrance
+  refresh.js                recomputes shares and refreshes the affected actors
+  group-sheet.js            controls on the Group sheet
+  actor-sheet.js            tooltip on PC and NPC encumbrance bars
 tests/
-  party-encumbrance.test.js allocate() e peso della cassa
-  lang.test.js              allineamento chiavi en/it
+  party-encumbrance.test.js allocate() and stash weight
+  lang.test.js              en/it key alignment
 ```
 
-### Dati
+### Data
 
-Flag sul Gruppo, sotto lo scope del modulo, chiave `partyEncumbrance` (aggiunta a `FLAGS` in
+Flag on the Group, under the module scope, key `partyEncumbrance` (added to `FLAGS` in
 `scripts/constants.js`):
 
 ```js
-{ mode: "none" | "equal" | "available" | "maximum", excluded: string[] /* actor id */ }
+{ mode: "none" | "equal" | "available" | "maximum", excluded: string[] /* actor ids */ }
 ```
 
-Assente equivale a `{ mode: "none", excluded: [] }`.
+Absent means `{ mode: "none", excluded: [] }`.
 
-Portatori di un Gruppo: membri con `type` `character` o `npc`, il cui id non è in `excluded`.
+A Group's carriers: members of `type` `character` or `npc` whose id is not in `excluded`.
 
-### `allocate.js` (puro)
+### `allocate.js` (pure)
 
 ```js
 /**
- * @param {number} weight                 Peso della cassa, nelle unità di default del mondo.
+ * @param {number} weight                 Stash weight, in the world's default units.
  * @param {{id: string, own: number, max: number}[]} carriers
  * @param {"equal"|"available"|"maximum"} mode
- * @returns {Map<string, number>}          Quota per id, arrotondata a 0,1.
+ * @returns {Map<string, number>}          Share per id, rounded to 0.1.
  */
 export function allocate(weight, carriers, mode) {}
 ```
 
-- `weight <= 0` o nessun portatore: mappa vuota.
+- `weight <= 0` or no carriers: empty map.
 - `equal`: `weight / n`.
-- `available`: `weight × disp_i / Σdisp`, con `disp_i = max(0, max_i − own_i)`. Se `Σdisp = 0` si
-  usa `maximum`.
-- `maximum`: `weight × max_i / Σmax`. Se `Σmax = 0` si usa `equal`.
-- Arrotondamento a 0,1 come dnd5e (`Math.round(x * 10) / 10`, stesso effetto di `toNearest(0.1)`,
-  che nei test fuori Foundry non esiste).
+- `available`: `weight × avail_i / Σavail`, with `avail_i = max(0, max_i − own_i)`. If
+  `Σavail = 0`, use `maximum`.
+- `maximum`: `weight × max_i / Σmax`. If `Σmax = 0`, use `equal`.
+- Rounding to 0.1 like dnd5e (`Math.round(x * 10) / 10`, same effect as `toNearest(0.1)`, which
+  does not exist in tests outside Foundry).
 
-Una seconda funzione pura somma le mappe di più Gruppi: `mergeShares(maps) → Map<id, {total,
-bySource: [{groupId, groupName, share}]}>`. `bySource` alimenta il tooltip.
+A second pure function sums the maps of several Groups: `mergeShares(maps) → Map<id, {total,
+bySource: [{groupId, groupName, share}]}>`. `bySource` feeds the tooltip.
 
 ### `stash.js`
 
-- `stashWeight(group)`: somma di `item.system.totalWeightIn?.(unità)` sugli oggetti del Gruppo con
-  `!item.container` (i contenitori includono il loro contenuto, e una borsa conservante resta leggera
-  come vuole dnd5e); più le monete se `game.settings.get("dnd5e", "currencyWeight")`, con la stessa
-  formula di `prepareEncumbrance` (`CONFIG.DND5E.encumbrance.currencyPerWeight`). Unità: quelle di
-  default del mondo (`CONFIG.DND5E.encumbrance.baseUnits.default`, imperiale o metrica secondo
-  `metricWeightUnits`), le stesse di PG e PNG.
-- Per essere testabile senza Foundry, riceve le dipendenze (oggetti, valute, impostazioni, config)
-  come argomenti; il codice Foundry-dipendente è un sottile adattatore sopra.
-- `readConfig(group)`: flag con i default.
-- `carriersOf(group)`: portatori come sopra.
+- `stashWeight(group)`: sum of `item.system.totalWeightIn?.(units)` over the Group's items with
+  `!item.container` (containers include their contents, and a bag of holding stays light as dnd5e
+  intends); plus coins if `game.settings.get("dnd5e", "currencyWeight")`, with the same formula as
+  `prepareEncumbrance` (`CONFIG.DND5E.encumbrance.currencyPerWeight`). Units: the world's default
+  ones (`CONFIG.DND5E.encumbrance.baseUnits.default`, imperial or metric depending on
+  `metricWeightUnits`), the same as PCs and NPCs.
+- To be testable without Foundry, it receives its dependencies (items, currencies, settings, config)
+  as arguments; the Foundry-dependent code is a thin adapter on top.
+- `readConfig(group)`: the flag with defaults.
+- `carriersOf(group)`: carriers as above.
 
 ### `encumbrance-wrapper.js`
 
-Dopo la chiamata originale, per attori `character` o `npc`:
+After the original call, for `character` or `npc` actors:
 
-1. Salva il peso proprio: `encumbrance.stash = { own: encumbrance.value, share: 0, bySource: [] }`.
-   Lo salva sempre, anche a quota zero, perché `refresh.js` lo legge per la modalità "carico
-   disponibile".
-2. Se la mappa corrente (cache del modulo, calcolata da `refresh.js`) ha una quota per `actor.id`:
-   `value = (own + share)` arrotondato a 0,1, `pct` ricalcolato con la stessa formula nativa
-   (`clamp(value × 100 / max, 0, 100)`), `encumbered` ricalcolato come nativo, `stash.share` e
-   `stash.bySource` valorizzati.
+1. Store the own weight: `encumbrance.stash = { own: encumbrance.value, share: 0, bySource: [] }`.
+   Always stored, even with a zero share, because `refresh.js` reads it for "available capacity"
+   mode.
+2. If the current map (module cache, computed by `refresh.js`) has a share for `actor.id`:
+   `value = (own + share)` rounded to 0.1, `pct` recomputed with the same native formula
+   (`clamp(value × 100 / max, 0, 100)`), `encumbered` recomputed as native, `stash.share` and
+   `stash.bySource` filled in.
 
-Il wrapper non calcola le quote: le legge soltanto. Così non dipende dall'ordine in cui Foundry
-prepara gli attori all'avvio.
+The wrapper does not compute shares: it only reads them. That way it does not depend on the order
+in which Foundry prepares actors at startup.
 
 ### `refresh.js`
 
 `recompute()`:
 
-1. Per ogni attore di tipo `group` con modalità diversa da `none`: peso della cassa, portatori con
+1. For each actor of type `group` with a mode other than `none`: stash weight, carriers with
    `{ id, own: encumbrance.stash?.own ?? encumbrance.value, max: encumbrance.max }`, `allocate()`.
-2. `mergeShares()` delle mappe.
-3. Confronto con la mappa precedente: sostituisce la cache, poi per ogni attore la cui quota è
-   cambiata (compresi quelli che l'hanno persa) chiama `actor.reset()` (ri-prepara i dati derivati
-   leggendo la nuova cache) e ne ridisegna le schede aperte. Ridisegna anche le schede dei Gruppi
-   attivi.
-4. Solo sul DM attivo (`game.users.activeGM?.isSelf`), per gli attori cambiati:
-   `actor.updateEncumbrance()`, così l'effetto di stato segue la quota anche quando a cambiare è
-   la cassa e non l'attore.
+2. `mergeShares()` of the maps.
+3. Comparison with the previous map: replace the cache, then for each actor whose share changed
+   (including those that lost it) call `actor.reset()` (re-prepares derived data reading the new
+   cache) and re-render its open sheets. Also re-render the sheets of active Groups.
+4. Only on the active GM (`game.users.activeGM?.isSelf`), for the changed actors:
+   `actor.updateEncumbrance()`, so the status effect follows the share even when what changed is
+   the stash and not the actor.
 
-Quando si esegue: una volta su `ready` (a quel punto tutti gli attori e gli oggetti dei Gruppi sono
-preparati), poi con `foundry.utils.debounce` (~100 ms) su:
+When it runs: once on `ready` (by then all actors and Group items are prepared), then with
+`foundry.utils.debounce` (~100 ms) on:
 
-- `createItem`, `updateItem`, `deleteItem`: oggetti della cassa o dei membri;
-- `updateActor`, `deleteActor`: flag e membri del Gruppo, monete, FOR, taglia, `powerfulBuild`;
-- `createActiveEffect`, `updateActiveEffect`, `deleteActiveEffect`: effetti che cambiano FOR o
-  capacità;
-- `updateSetting` per `dnd5e.currencyWeight`, `dnd5e.metricWeightUnits`, `dnd5e.encumbrance`.
+- `createItem`, `updateItem`, `deleteItem`: stash or member items;
+- `updateActor`, `deleteActor`: Group flags and members, coins, STR, size, `powerfulBuild`;
+- `createActiveEffect`, `updateActiveEffect`, `deleteActiveEffect`: effects that change STR or
+  capacity;
+- `updateSetting` for `dnd5e.currencyWeight`, `dnd5e.metricWeightUnits`, `dnd5e.encumbrance`.
 
-Niente loop: `actor.reset()` non scatena hook di aggiornamento, e l'effetto di stato creato da
-`updateEncumbrance()` innesca un ricalcolo che trova le stesse quote e si ferma.
+No loops: `actor.reset()` fires no update hooks, and the status effect created by
+`updateEncumbrance()` triggers a recompute that finds the same shares and stops.
 
-Il ricalcolo è economico (pochi Gruppi, pochi membri), per questo si scatena su tutti questi eventi
-senza filtrare in anticipo quale documento sia coinvolto.
+The recompute is cheap (few Groups, few members), which is why it fires on all these events without
+filtering up front which document is involved.
 
 ### `group-sheet.js`
 
-Hook `renderGroupActorSheet`, solo se la scheda Inventario è nel DOM.
+`renderGroupActorSheet` hook, only if the Inventory tab is in the DOM.
 
-- In cima al corpo dell'inventario: "Stash weight: 184.5 lb" e il menu della modalità (DM) o il suo
-  testo (giocatori). Con "Nessuna" resta visibile il peso, così il DM lo vede prima di scegliere.
-- In ogni card `.encumbrance.card[data-uuid]` di un membro `character` o `npc`: spunta "Carries" (DM)
-  o icona ✓/✗ (giocatori), e "Stash share: 46 lb" quando la quota è diversa da zero.
-- Avviso sotto il menu se la modalità è attiva ma non c'è nessun portatore: "No carriers: the stash
+- At the top of the inventory body: "Stash weight: 184.5 lb" and the mode menu (GM) or its text
+  (players). With "None" the weight stays visible, so the GM sees it before choosing.
+- In each `.encumbrance.card[data-uuid]` card of a `character` or `npc` member: a "Carries" checkbox
+  (GM) or a ✓/✗ icon (players), and "Stash share: 46 lb" when the share is non-zero.
+- A warning under the menu if the mode is active but there are no carriers: "No carriers: the stash
   weighs on no one".
-- Il cambio di modalità o di spunta è un `group.setFlag(...)`: il ricalcolo parte dall'hook
-  `updateActor`.
+- Changing the mode or a checkbox is a `group.setFlag(...)`: the recompute starts from the
+  `updateActor` hook.
 
 ### `actor-sheet.js`
 
-Hook di render delle schede PG e PNG di dnd5e: se `encumbrance.stash.share > 0`, aggiunge un
-`data-tooltip` alla barra `.meter.progress` d'ingombro con una riga per Gruppo: "Of which 46 lb from
-The Company's stash".
+Render hook of dnd5e's PC and NPC sheets: if `encumbrance.stash.share > 0`, add a `data-tooltip` to
+the encumbrance `.meter.progress` bar with one line per Group: "Of which 46 lb from The Company's
+stash".
 
-### Localizzazione
+### Localization
 
-Tutte le stringhe in `lang/en.json` (lingua base, ripiego di Foundry) e `lang/it.json`, sotto
-`DND5E_GM_TOOLKIT.tools.partyEncumbrance.*`. Nessun testo scritto a mano nel codice. Le etichette
-d'esempio in inglese sopra sono indicative; la traduzione italiana va scritta per intero, non
-lasciata al ripiego.
+All strings in `lang/en.json` (base language, Foundry's fallback) and `lang/it.json`, under
+`DND5E_GM_TOOLKIT.tools.partyEncumbrance.*`. No hand-written text in the code. The English example
+labels above are indicative; the Italian translation must be written in full, not left to the
+fallback.
 
-## Casi limite
+## Edge cases
 
-| Caso | Comportamento |
+| Case | Behavior |
 |---|---|
-| Nessun portatore | Peso non distribuito, avviso sulla scheda Gruppo. |
-| Tutti pieni in "carico disponibile" | Ripartizione per capacità massima. |
-| Attore in più Gruppi attivi | Somma delle quote, dettaglio per Gruppo nel tooltip. |
-| Cassa vuota o modalità "Nessuna" | Quota zero, barra identica alla nativa. |
-| Membro eliminato o tolto dal Gruppo | Già scartato da dnd5e; al ricalcolo la quota sparisce. |
-| Inventario del Gruppo sul veicolo primario | Si distribuiscono solo gli oggetti rimasti nel Gruppo. |
-| Token non collegato di un membro | Condivide l'id dell'attore base, quindi eredita la quota. |
-| Strumento spento | Wrapper non registrato, comportamento nativo, nessuna pulizia. |
-| libWrapper assente | Shim incluso in `lib/`. |
-| Monete | Pesano solo con "currency weight" di dnd5e attivo. |
-| Unità metriche | Cassa calcolata nelle stesse unità dei PG. |
+| No carriers | Weight not distributed, warning on the Group sheet. |
+| Everybody full in "available capacity" | Distribution by maximum capacity. |
+| Actor in several active Groups | Sum of the shares, per-Group detail in the tooltip. |
+| Empty stash or "None" mode | Zero share, bar identical to native. |
+| Member deleted or removed from the Group | Already dropped by dnd5e; the share disappears on recompute. |
+| Group inventory on the primary vehicle | Only the items left in the Group are distributed. |
+| Unlinked token of a member | Shares the base actor's id, so it inherits the share. |
+| Tool off | Wrapper not registered, native behavior, no cleanup. |
+| libWrapper missing | Shim included in `lib/`. |
+| Coins | Weigh only with dnd5e's "currency weight" on. |
+| Metric units | Stash computed in the same units as the PCs. |
 
-Errori: se il ricalcolo di un Gruppo lancia, l'errore va in console (`console.error` con prefisso del
-modulo), quel Gruppo viene saltato e gli altri proseguono. Il wrapper avvolge la propria parte in
-`try/catch` dopo la chiamata originale: in caso di errore l'ingombro resta quello nativo.
+Errors: if the recompute of a Group throws, the error goes to the console (`console.error` with the
+module prefix), that Group is skipped and the others go on. The wrapper wraps its own part in
+`try/catch` after the original call: on error the encumbrance stays the native one.
 
-## Test
+## Tests
 
-Automatici (vitest, `npm test`):
+Automated (vitest, `npm test`):
 
-- `allocate()`: le tre modalità; ripiego di "available" su "maximum"; ripiego di "maximum" su
-  "equal" con capacità nulle; nessun portatore; peso zero o negativo; portatore unico (riceve tutto);
-  portatore con peso proprio oltre la capacità (disponibile 0); arrotondamento a 0,1.
-- `mergeShares()`: somma di più Gruppi e dettaglio per fonte.
-- Peso della cassa: oggetti al primo livello, oggetti in contenitore non contati due volte, monete
-  con impostazione attiva e spenta.
-- `lang.test.js`: ogni chiave di `en.json` esiste in `it.json` e viceversa (copre anche gli
-  strumenti esistenti).
+- `allocate()`: the three modes; "available" falling back to "maximum"; "maximum" falling back to
+  "equal" with zero capacities; no carriers; zero or negative weight; single carrier (gets
+  everything); carrier whose own weight is over capacity (available 0); rounding to 0.1.
+- `mergeShares()`: sum of several Groups and per-source detail.
+- Stash weight: top-level items, items inside a container not counted twice, coins with the setting
+  on and off.
+- `lang.test.js`: every key in `en.json` exists in `it.json` and vice versa (also covers the
+  existing tools).
 
-Manuali in Foundry (checklist nel piano):
+Manual in Foundry (checklist in the plan):
 
-1. Attivare lo strumento, mettere oggetti nel Gruppo, scegliere ciascuna modalità: le barre dei membri
-   nella scheda Gruppo e sulle schede PG cambiano di conseguenza.
-2. Togliere la spunta a tutti tranne il mulo: tutto il peso va al mulo.
-3. Togliere tutte le spunte: compare l'avviso, le barre tornano native.
-4. Da giocatore: menu e spunte non modificabili, tooltip visibile sulla propria scheda.
-5. Superare la capacità con la sola quota: compare lo stato d'ingombro; svuotare la cassa: sparisce.
-6. Spegnere lo strumento e ricaricare: barre native.
-7. Verificare su dnd5e 5.3.x e 6.0.x.
+1. Enable the tool, put items in the Group, choose each mode: the members' bars in the Group sheet
+   and on the PC sheets change accordingly.
+2. Untick everyone except the mule: all the weight goes to the mule.
+3. Untick everyone: the warning appears, the bars go back to native.
+4. As a player: menu and checkboxes not editable, tooltip visible on your own sheet.
+5. Go over capacity with the share alone: the encumbrance status appears; empty the stash: it goes
+   away.
+6. Switch the tool off and reload: native bars.
+7. Check on dnd5e 5.3.x and 6.0.x.
 
-## Documentazione e rilascio
+## Documentation and release
 
-- Voce nel README sotto "Strumenti disponibili".
-- `tools/index.js`: importare e registrare lo strumento.
-- Il workflow di release zippa l'intera cartella `tools/`: nessuna modifica necessaria.
+- Entry in the README under "Available tools".
+- `tools/index.js`: import and register the tool.
+- The release workflow zips the whole `tools/` folder: no change needed.
+- Heads-up for merging: the `worktree-espansione-database-mostri` branch rewrites large parts of
+  `lang/en.json` and `lang/it.json` (the monsters block). Add the `partyEncumbrance` keys under
+  `tools`, away from that block, to keep the merge conflict small.
