@@ -1,81 +1,81 @@
-# Rilevamento passivo — piano di implementazione
+# Passive detection — implementation plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Generalizzare il rilevamento trappole del modulo in un sistema di rilevamento passivo che copre trappole, indizi, porte segrete e creature nascoste, con notifica mirata al giocatore e proposta di sorpresa a inizio combattimento.
+**Goal:** Generalize the module's trap detection into a passive detection system covering traps, clues, secret doors and hidden creatures, with a targeted notification to the player and a surprise proposal at the start of combat.
 
-**Architecture:** Un nucleo puro in `core/` decide (dedup → raggio → visuale → passiva contro CD) e notifica; le sorgenti in `tools/` traducono Region, muri e token in una forma normalizzata detta *rilevabile*. Il nucleo non tocca mai un documento Foundry: la persistenza entra da callback, il che lo rende testabile con vitest senza Foundry.
+**Architecture:** A pure core in `core/` decides (dedup → range → sight → passive against DC) and notifies; the sources in `tools/` translate Regions, walls and tokens into a normalized shape called a *detectable*. The core never touches a Foundry document: persistence comes in through callbacks, which makes it testable with vitest without Foundry.
 
-**Tech Stack:** Foundry VTT v13+ (verificato 14), sistema dnd5e 4.0+, moduli ES caricati direttamente senza bundler, vitest solo per `core/`.
+**Tech Stack:** Foundry VTT v13+ (verified 14), dnd5e system 4.0+, ES modules loaded directly with no bundler, vitest only for `core/`.
 
-**Spec:** `docs/superpowers/specs/2026-09-02-rilevamento-passivo-design.md`
+**Spec:** `docs/superpowers/specs/2026-09-02-passive-detection-design.md`
 
 ## Global Constraints
 
-- Module id: `trapfinder`. Non cambia mai: è dentro gli URL di manifest/download e dentro il tipo dei RegionBehavior salvati nei mondi.
-- Namespace i18n: `DND5E_GM_TOOLKIT`. Ogni stringa mostrata all'utente passa da `lang/en.json` **e** `lang/it.json`.
-- Nessun bundler, nessuna dipendenza a runtime. Foundry carica i moduli ES direttamente: ogni import deve avere l'estensione `.js` esplicita e un percorso relativo.
-- `core/` non importa **nulla** da `scripts/` né da `tools/`. Riceve `moduleId` come parametro, seguendo il pattern già in uso (`register(moduleId)`, `onReady(moduleId)`).
-- Tutti gli hook girano **solo lato DM** (`if (!game.user.isGM) return;`), come già oggi.
-- Ogni nuovo `game.settings.register` che influisce su registrazioni fatte una volta per caricamento pagina usa `requiresReload: true`, come i due esistenti.
-- Il modulo **non tira mai i dadi**: confronta solo valori passivi.
-- `.github/workflows/release.yml` zippa un **elenco esplicito** di cartelle. Ogni cartella nuova va aggiunta lì o la release esce rotta pur funzionando in sviluppo.
+- Module id: `trapfinder`. It never changes: it is inside the manifest/download URLs and inside the type of the RegionBehaviors saved in worlds.
+- i18n namespace: `DND5E_GM_TOOLKIT`. Every string shown to the user goes through `lang/en.json` **and** `lang/it.json`.
+- No bundler, no runtime dependency. Foundry loads ES modules directly: every import must have an explicit `.js` extension and a relative path.
+- `core/` imports **nothing** from `scripts/` or `tools/`. It receives `moduleId` as a parameter, following the pattern already in use (`register(moduleId)`, `onReady(moduleId)`).
+- All hooks run **GM-side only** (`if (!game.user.isGM) return;`), as today.
+- Every new `game.settings.register` that affects registrations made once per page load uses `requiresReload: true`, like the two existing ones.
+- The module **never rolls dice**: it only compares passive values.
+- `.github/workflows/release.yml` zips an **explicit list** of folders. Every new folder must be added there or the release ships broken while working in development.
 
-## Scostamenti dalla spec
+## Deviations from the spec
 
-Tre raffinamenti alla forma del *rilevabile*, decisi scrivendo il piano e già riportati nella spec:
+Three refinements to the shape of the *detectable*, decided while writing the plan and already carried back into the spec:
 
-1. `fallbackKey` si sdoppia in **`spottedKey`** e **`missedKey`**: servono due testi diversi e la spec ne prevedeva uno solo.
-2. Nuovo campo **`sightPoint`**: il punto usato per il test di visuale, distinto da `point` usato per la distanza. Serve alle porte segrete, dove il bersaglio è il muro stesso.
-3. Il `message` personalizzato vale **solo in caso di riuscita**. Al fallimento si usa sempre il testo generico: il testo personalizzato descrive ciò che si nota, e chi fallisce non nota niente.
+1. `fallbackKey` splits into **`spottedKey`** and **`missedKey`**: two different texts are needed and the spec provided for only one.
+2. New field **`sightPoint`**: the point used for the sight test, distinct from `point` used for distance. Secret doors need it, where the target is the wall itself.
+3. The custom `message` applies **only on success**. On failure the generic text is always used: the custom text describes what is noticed, and whoever fails notices nothing.
 
-## Struttura dei file
+## File structure
 
-| File | Responsabilità | Puro? |
+| File | Responsibility | Pure? |
 |---|---|---|
-| `core/detection.js` | la sequenza decisionale, nient'altro | sì, testato |
-| `core/recipients.js` | chi riceve chat e chi riceve toast | sì, testato |
-| `core/geometry.js` | punto più vicino su segmento/bbox, arretramento | parte pura testata, wrapper Foundry no |
+| `core/detection.js` | the decision sequence, nothing else | yes, tested |
+| `core/recipients.js` | who gets chat and who gets the toast | yes, tested |
+| `core/geometry.js` | closest point on segment/bbox, pull-back | pure part tested, Foundry wrapper not |
 | `core/notify.js` | ChatMessage, socket, `ui.notifications` | no |
-| `tools/passive-detection/index.js` | interruttore, registrazione behavior, hook | no |
-| `tools/passive-detection/passive-detection-behavior.js` | schema del Region behavior | no |
-| `tools/passive-detection/sources.js` | Region e muri → rilevabili | no |
-| `tools/passive-detection/wall-config.js` | campi iniettati nella scheda muro | no |
-| `tools/passive-detection/migration.js` | ricreazione dei behavior del tipo vecchio | no |
-| `tools/hidden-creatures/index.js` | interruttore, hook simmetrici, reset | no |
-| `tools/hidden-creatures/sources.js` | token nascosti → rilevabili | no |
-| `tools/hidden-creatures/marker-guard.js` | avviso su marcatori incoerenti | no |
-| `tools/hidden-creatures/surprise.js` | proposta di sorpresa | no |
-| `scripts/constants.js` | chiavi di impostazioni e flag | — |
+| `tools/passive-detection/index.js` | toggle, behavior registration, hooks | no |
+| `tools/passive-detection/passive-detection-behavior.js` | Region behavior schema | no |
+| `tools/passive-detection/sources.js` | Regions and walls → detectables | no |
+| `tools/passive-detection/wall-config.js` | fields injected into the wall sheet | no |
+| `tools/passive-detection/migration.js` | recreation of the old-type behaviors | no |
+| `tools/hidden-creatures/index.js` | toggle, symmetric hooks, reset | no |
+| `tools/hidden-creatures/sources.js` | hidden tokens → detectables | no |
+| `tools/hidden-creatures/marker-guard.js` | warning on inconsistent markers | no |
+| `tools/hidden-creatures/surprise.js` | surprise proposal | no |
+| `scripts/constants.js` | setting and flag keys | — |
 
-## Ordine e stato funzionante
+## Order and working state
 
-Le task 1-4 costruiscono il nucleo **senza toccare** `trap-detection`, che resta funzionante. Le task 5-7 lo convertono in tre passi, ciascuno dei quali lascia il modulo funzionante. Dalla task 9 in poi si aggiungono soggetti nuovi.
+Tasks 1-4 build the core **without touching** `trap-detection`, which keeps working. Tasks 5-7 convert it in three steps, each of which leaves the module working. From task 9 on, new subjects are added.
 
-Le due parti a rischio dichiarate nella spec sono la **task 8** (iniezione nella scheda muro) e la **task 9** (arretramento del punto di visuale). Chi esegue può anticipare una prova manuale della task 8 in Foundry prima di scrivere il resto: se l'hook non regge, il ripiego è già scritto nella task.
+The two risky parts declared in the spec are **task 8** (injection into the wall sheet) and **task 9** (pulling back the sight point). Whoever executes can bring forward a manual test of task 8 in Foundry before writing the rest: if the hook does not hold, the fallback is already written in the task.
 
 ---
 
-### Task 1: Nucleo decisionale e tooling di test
+### Task 1: Decision core and test tooling
 
 **Files:**
 - Create: `package.json`
 - Create: `core/detection.js`
 - Test: `tests/detection.test.js`
-- Modify: `.github/workflows/release.yml:41` (aggiungere `core` all'elenco zippato)
+- Modify: `.github/workflows/release.yml:41` (add `core` to the zipped list)
 
 **Interfaces:**
-- Consumes: niente.
-- Produces: `runDetection({observer, detectables, measure, isSightBlocked, report}) -> Promise<DetectionResult[]>` dove `DetectionResult = {observer, detectable, passive, spotted}`. Definisce la forma `Detectable` usata da ogni task successiva.
+- Consumes: nothing.
+- Produces: `runDetection({observer, detectables, measure, isSightBlocked, report}) -> Promise<DetectionResult[]>` where `DetectionResult = {observer, detectable, passive, spotted}`. Defines the `Detectable` shape used by every later task.
 
-- [ ] **Step 1: Installare vitest**
+- [ ] **Step 1: Install vitest**
 
 ```bash
 npm init -y
 npm install --save-dev vitest
 ```
 
-Poi sostituire il `package.json` generato con questo (rimuove i campi inutili di `npm init` e aggiunge gli script; lasciare la versione di vitest che npm ha appena scritto):
+Then replace the generated `package.json` with this one (it removes the useless `npm init` fields and adds the scripts; keep the vitest version npm just wrote):
 
 ```json
 {
@@ -92,22 +92,22 @@ Poi sostituire il `package.json` generato con questo (rimuove i campi inutili di
 }
 ```
 
-Nessun file di configurazione vitest: il pattern di default trova già `tests/*.test.js`.
-`node_modules/` è già in `.gitignore`, e l'elenco esplicito dello zip di release esclude da sé `package.json`, `tests/` e `docs/`.
+No vitest config file: the default pattern already finds `tests/*.test.js`.
+`node_modules/` is already in `.gitignore`, and the release zip's explicit list excludes `package.json`, `tests/` and `docs/` by itself.
 
-- [ ] **Step 2: Aggiungere `core` allo zip di release**
+- [ ] **Step 2: Add `core` to the release zip**
 
-In `.github/workflows/release.yml`, nello step "Create Zip Archive":
+In `.github/workflows/release.yml`, in the "Create Zip Archive" step:
 
 ```yaml
           zip -r "$ZIP_NAME" module.json scripts core tools lib lang templates styles README.md LICENSE
 ```
 
-Senza questa riga la release esce senza il nucleo: in sviluppo tutto funziona, una volta installata dal manifest il modulo va in errore a ogni import.
+Without this line the release ships without the core: in development everything works, once installed from the manifest the module errors on every import.
 
-- [ ] **Step 3: Scrivere i test che falliscono**
+- [ ] **Step 3: Write the failing tests**
 
-Creare `tests/detection.test.js`:
+Create `tests/detection.test.js`:
 
 ```js
 import { describe, expect, it, vi } from "vitest";
@@ -141,7 +141,7 @@ const clear = () => false;
 const blocked = () => true;
 
 describe("runDetection", () => {
-  it("salta un rilevabile già visto senza notificare né segnare", async () => {
+  it("skips an already-seen detectable without notifying or marking", async () => {
     const report = vi.fn();
     const d = detectable({ hasSeen: () => true });
 
@@ -154,7 +154,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("salta un rilevabile fuori raggio senza segnarlo, così resta valutabile più avanti", async () => {
+  it("skips an out-of-range detectable without marking it, so it stays checkable later", async () => {
     const report = vi.fn();
     const d = detectable();
 
@@ -166,7 +166,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("individua quando la passiva eguaglia la CD", async () => {
+  it("spots when the passive equals the DC", async () => {
     const report = vi.fn();
     const d = detectable({ dc: 12 });
 
@@ -179,7 +179,7 @@ describe("runDetection", () => {
     expect(report).toHaveBeenCalledWith(result);
   });
 
-  it("segna come visto anche chi fallisce, per non ripetere la notifica al DM", async () => {
+  it("marks as seen even whoever fails, so the GM notification is not repeated", async () => {
     const report = vi.fn();
     const d = detectable({ dc: 20 });
 
@@ -191,7 +191,7 @@ describe("runDetection", () => {
     expect(d.markSeen).toHaveBeenCalledOnce();
   });
 
-  it("salta se la visuale è bloccata e il rilevabile la richiede", async () => {
+  it("skips if sight is blocked and the detectable requires it", async () => {
     const report = vi.fn();
     const d = detectable({ requiresSight: true });
 
@@ -203,7 +203,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("valuta comunque se il rilevabile non richiede visuale", async () => {
+  it("still evaluates if the detectable does not require sight", async () => {
     const report = vi.fn();
     const d = detectable({ requiresSight: false });
 
@@ -214,7 +214,7 @@ describe("runDetection", () => {
     expect(report).toHaveBeenCalledOnce();
   });
 
-  it("usa sightPoint per la visuale e point per la distanza", async () => {
+  it("uses sightPoint for sight and point for distance", async () => {
     const measure = vi.fn(() => 5);
     const isSightBlocked = vi.fn(() => false);
     const d = detectable({ point: { x: 1, y: 1 }, sightPoint: { x: 2, y: 2 } });
@@ -227,7 +227,7 @@ describe("runDetection", () => {
     expect(isSightBlocked).toHaveBeenCalledWith({ x: 2, y: 2 });
   });
 
-  it("legge la skill indicata dal rilevabile", async () => {
+  it("reads the skill named by the detectable", async () => {
     const d = detectable({ skill: "inv", dc: 11 });
 
     const [result] = await runDetection({
@@ -238,7 +238,7 @@ describe("runDetection", () => {
     expect(result.spotted).toBe(true);
   });
 
-  it("tratta una skill assente come passiva 0 invece di esplodere", async () => {
+  it("treats a missing skill as passive 0 instead of blowing up", async () => {
     const d = detectable({ skill: "prc", dc: 1 });
 
     const [result] = await runDetection({
@@ -250,7 +250,7 @@ describe("runDetection", () => {
     expect(result.spotted).toBe(false);
   });
 
-  it("valuta più rilevabili nello stesso passaggio", async () => {
+  it("evaluates several detectables in the same pass", async () => {
     const report = vi.fn();
 
     const results = await runDetection({
@@ -265,14 +265,14 @@ describe("runDetection", () => {
 });
 ```
 
-- [ ] **Step 4: Eseguire i test e verificare che falliscano**
+- [ ] **Step 4: Run the tests and verify they fail**
 
 Run: `npm test`
 Expected: FAIL, `Failed to resolve import "../core/detection.js"`
 
-- [ ] **Step 5: Scrivere l'implementazione minima**
+- [ ] **Step 5: Write the minimal implementation**
 
-Creare `core/detection.js`:
+Create `core/detection.js`:
 
 ```js
 /**
@@ -336,33 +336,33 @@ export async function runDetection({ observer, detectables, measure, isSightBloc
 }
 ```
 
-- [ ] **Step 6: Eseguire i test e verificare che passino**
+- [ ] **Step 6: Run the tests and verify they pass**
 
 Run: `npm test`
-Expected: PASS, 10 test
+Expected: PASS, 10 tests
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json core/detection.js tests/detection.test.js .github/workflows/release.yml
-git commit -m "feat(core): nucleo decisionale del rilevamento passivo, con test"
+git commit -m "feat(core): passive detection decision core, with tests"
 ```
 
 ---
 
-### Task 2: Scelta dei destinatari
+### Task 2: Choice of recipients
 
 **Files:**
 - Create: `core/recipients.js`
 - Test: `tests/recipients.test.js`
 
 **Interfaces:**
-- Consumes: niente.
+- Consumes: nothing.
 - Produces: `detectionRecipients({actor, spotted, users, toastEnabled}) -> {chat: string[], toast: string[]}`.
 
-- [ ] **Step 1: Scrivere i test che falliscono**
+- [ ] **Step 1: Write the failing tests**
 
-Creare `tests/recipients.test.js`:
+Create `tests/recipients.test.js`:
 
 ```js
 import { describe, expect, it } from "vitest";
@@ -380,7 +380,7 @@ function actorOwnedBy(...owners) {
 }
 
 describe("detectionRecipients", () => {
-  it("manda un fallimento solo al DM, mai al giocatore", () => {
+  it("sends a failure only to the GM, never to the player", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(player), spotted: false, users: [gm, player], toastEnabled: true
     });
@@ -388,7 +388,7 @@ describe("detectionRecipients", () => {
     expect(result).toEqual({ chat: ["gm1"], toast: [] });
   });
 
-  it("manda una riuscita al proprietario e al DM", () => {
+  it("sends a success to the owner and to the GM", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(player), spotted: true, users: [gm, player, stranger], toastEnabled: true
     });
@@ -396,7 +396,7 @@ describe("detectionRecipients", () => {
     expect(result.chat.sort()).toEqual(["gm1", "u1"]);
   });
 
-  it("manda il toast solo ai proprietari connessi", () => {
+  it("sends the toast only to connected owners", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(player, offline), spotted: true, users: [gm, player, offline], toastEnabled: true
     });
@@ -405,7 +405,7 @@ describe("detectionRecipients", () => {
     expect(result.chat.sort()).toEqual(["gm1", "u1", "u2"]);
   });
 
-  it("non manda toast al DM, che il messaggio lo vede già in chat", () => {
+  it("sends no toast to the GM, who already sees the message in chat", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(player), spotted: true, users: [gm, player], toastEnabled: true
     });
@@ -413,7 +413,7 @@ describe("detectionRecipients", () => {
     expect(result.toast).not.toContain("gm1");
   });
 
-  it("non manda alcun toast se l'impostazione è spenta", () => {
+  it("sends no toast at all if the setting is off", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(player), spotted: true, users: [gm, player], toastEnabled: false
     });
@@ -422,7 +422,7 @@ describe("detectionRecipients", () => {
     expect(result.chat.sort()).toEqual(["gm1", "u1"]);
   });
 
-  it("con un PG senza proprietario avvisa solo il DM, senza rompersi", () => {
+  it("with an ownerless PC notifies only the GM, without breaking", () => {
     const result = detectionRecipients({
       actor: actorOwnedBy(), spotted: true, users: [gm, stranger], toastEnabled: true
     });
@@ -430,7 +430,7 @@ describe("detectionRecipients", () => {
     expect(result).toEqual({ chat: ["gm1"], toast: [] });
   });
 
-  it("non duplica un DM che è anche proprietario del PG", () => {
+  it("does not duplicate a GM who also owns the PC", () => {
     const gmOwner = { id: "gm1", isGM: true, active: true };
     const result = detectionRecipients({
       actor: actorOwnedBy(gmOwner), spotted: true, users: [gmOwner], toastEnabled: true
@@ -439,7 +439,7 @@ describe("detectionRecipients", () => {
     expect(result.chat).toEqual(["gm1"]);
   });
 
-  it("avvisa tutti i DM presenti, non solo il primo", () => {
+  it("notifies every GM present, not only the first", () => {
     const gm2 = { id: "gm2", isGM: true, active: true };
     const result = detectionRecipients({
       actor: actorOwnedBy(player), spotted: false, users: [gm, gm2, player], toastEnabled: true
@@ -450,14 +450,14 @@ describe("detectionRecipients", () => {
 });
 ```
 
-- [ ] **Step 2: Eseguire i test e verificare che falliscano**
+- [ ] **Step 2: Run the tests and verify they fail**
 
 Run: `npm test`
 Expected: FAIL, `Failed to resolve import "../core/recipients.js"`
 
-- [ ] **Step 3: Scrivere l'implementazione minima**
+- [ ] **Step 3: Write the minimal implementation**
 
-Creare `core/recipients.js`:
+Create `core/recipients.js`:
 
 ```js
 /**
@@ -491,35 +491,35 @@ export function detectionRecipients({ actor, spotted, users, toastEnabled }) {
 }
 ```
 
-- [ ] **Step 4: Eseguire i test e verificare che passino**
+- [ ] **Step 4: Run the tests and verify they pass**
 
 Run: `npm test`
-Expected: PASS, 18 test in totale
+Expected: PASS, 18 tests in total
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add core/recipients.js tests/recipients.test.js
-git commit -m "feat(core): scelta dei destinatari di chat e toast, con test"
+git commit -m "feat(core): choice of chat and toast recipients, with tests"
 ```
 
 ---
 
-### Task 3: Geometria e visuale
+### Task 3: Geometry and sight
 
 **Files:**
 - Create: `core/geometry.js`
 - Test: `tests/geometry.test.js`
 
 **Interfaces:**
-- Consumes: niente.
-- Produces: puri — `closestPointOnSegment(point, a, b) -> {x, y}`, `closestPointInBounds(point, bounds) -> {x, y}`, `pullBack(point, towards, distance) -> {x, y}|null`. Dipendenti da Foundry — `sceneDistance(from, to) -> number`, `isSightBlocked(from, to) -> boolean`.
+- Consumes: nothing.
+- Produces: pure — `closestPointOnSegment(point, a, b) -> {x, y}`, `closestPointInBounds(point, bounds) -> {x, y}`, `pullBack(point, towards, distance) -> {x, y}|null`. Foundry-dependent — `sceneDistance(from, to) -> number`, `isSightBlocked(from, to) -> boolean`.
 
-- [ ] **Step 1: Scrivere i test che falliscono**
+- [ ] **Step 1: Write the failing tests**
 
-Creare `tests/geometry.test.js`. Nota il polyfill in testa: `Math.clamp` è un'estensione di
-Foundry, non JavaScript standard, e in vitest non esiste. Definirlo qui fa provare ai test
-esattamente lo stesso codice che gira in Foundry, invece di una variante scritta apposta.
+Create `tests/geometry.test.js`. Note the polyfill at the top: `Math.clamp` is a Foundry
+extension, not standard JavaScript, and it does not exist in vitest. Defining it here makes the
+tests exercise exactly the same code that runs in Foundry, instead of a variant written for them.
 
 ```js
 import { describe, expect, it } from "vitest";
@@ -533,19 +533,19 @@ describe("closestPointOnSegment", () => {
   const a = { x: 0, y: 0 };
   const b = { x: 100, y: 0 };
 
-  it("proietta un punto perpendicolare sul segmento", () => {
+  it("projects a point perpendicularly onto the segment", () => {
     expect(closestPointOnSegment({ x: 40, y: 30 }, a, b)).toEqual({ x: 40, y: 0 });
   });
 
-  it("si ferma all'estremo A per un punto oltre A", () => {
+  it("stops at end A for a point beyond A", () => {
     expect(closestPointOnSegment({ x: -50, y: 20 }, a, b)).toEqual({ x: 0, y: 0 });
   });
 
-  it("si ferma all'estremo B per un punto oltre B", () => {
+  it("stops at end B for a point beyond B", () => {
     expect(closestPointOnSegment({ x: 250, y: 20 }, a, b)).toEqual({ x: 100, y: 0 });
   });
 
-  it("restituisce A per un segmento degenere, senza dividere per zero", () => {
+  it("returns A for a degenerate segment, without dividing by zero", () => {
     expect(closestPointOnSegment({ x: 10, y: 10 }, a, { x: 0, y: 0 })).toEqual({ x: 0, y: 0 });
   });
 });
@@ -553,48 +553,48 @@ describe("closestPointOnSegment", () => {
 describe("closestPointInBounds", () => {
   const bounds = { left: 100, right: 200, top: 100, bottom: 200 };
 
-  it("restituisce il punto stesso se è dentro", () => {
+  it("returns the point itself if it is inside", () => {
     expect(closestPointInBounds({ x: 150, y: 150 }, bounds)).toEqual({ x: 150, y: 150 });
   });
 
-  it("blocca su un lato per un punto fuori su un solo asse", () => {
+  it("clamps to a side for a point outside on one axis only", () => {
     expect(closestPointInBounds({ x: 50, y: 150 }, bounds)).toEqual({ x: 100, y: 150 });
   });
 
-  it("blocca su uno spigolo per un punto fuori in diagonale", () => {
+  it("clamps to a corner for a point outside diagonally", () => {
     expect(closestPointInBounds({ x: 50, y: 500 }, bounds)).toEqual({ x: 100, y: 200 });
   });
 });
 
 describe("pullBack", () => {
-  it("arretra il punto verso l'osservatore della distanza chiesta", () => {
+  it("pulls the point back toward the observer by the requested distance", () => {
     expect(pullBack({ x: 100, y: 0 }, { x: 0, y: 0 }, 25)).toEqual({ x: 75, y: 0 });
   });
 
-  it("arretra correttamente anche in diagonale", () => {
+  it("pulls back correctly on a diagonal too", () => {
     const result = pullBack({ x: 30, y: 40 }, { x: 0, y: 0 }, 10);
     expect(result.x).toBeCloseTo(24);
     expect(result.y).toBeCloseTo(32);
   });
 
-  it("restituisce null se l'osservatore è più vicino della distanza di arretramento", () => {
+  it("returns null if the observer is closer than the pull-back distance", () => {
     expect(pullBack({ x: 10, y: 0 }, { x: 0, y: 0 }, 25)).toBeNull();
   });
 
-  it("restituisce null se i due punti coincidono, senza dividere per zero", () => {
+  it("returns null if the two points coincide, without dividing by zero", () => {
     expect(pullBack({ x: 10, y: 10 }, { x: 10, y: 10 }, 25)).toBeNull();
   });
 });
 ```
 
-- [ ] **Step 2: Eseguire i test e verificare che falliscano**
+- [ ] **Step 2: Run the tests and verify they fail**
 
 Run: `npm test`
 Expected: FAIL, `Failed to resolve import "../core/geometry.js"`
 
-- [ ] **Step 3: Scrivere l'implementazione**
+- [ ] **Step 3: Write the implementation**
 
-Creare `core/geometry.js`:
+Create `core/geometry.js`:
 
 ```js
 /**
@@ -676,21 +676,21 @@ export function isSightBlocked(from, to) {
 }
 ```
 
-- [ ] **Step 4: Eseguire i test e verificare che passino**
+- [ ] **Step 4: Run the tests and verify they pass**
 
 Run: `npm test`
-Expected: PASS, 29 test in totale
+Expected: PASS, 29 tests in total
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add core/geometry.js tests/geometry.test.js
-git commit -m "feat(core): geometria del rilevamento e test di visuale"
+git commit -m "feat(core): detection geometry and sight test"
 ```
 
 ---
 
-### Task 4: Notifiche e socket
+### Task 4: Notifications and socket
 
 **Files:**
 - Create: `core/notify.js`
@@ -699,12 +699,12 @@ git commit -m "feat(core): geometria del rilevamento e test di visuale"
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `detectionRecipients` dalla task 2.
-- Produces: `registerSocket(moduleId)`, `reportDetection({moduleId, observer, detectable, spotted, toastEnabled}) -> Promise<void>`, e da `scripts/constants.js` gli oggetti `SETTINGS` e `FLAGS`.
+- Consumes: `detectionRecipients` from task 2.
+- Produces: `registerSocket(moduleId)`, `reportDetection({moduleId, observer, detectable, spotted, toastEnabled}) -> Promise<void>`, and from `scripts/constants.js` the `SETTINGS` and `FLAGS` objects.
 
-- [ ] **Step 1: Estendere le costanti**
+- [ ] **Step 1: Extend the constants**
 
-Sostituire l'intero contenuto di `scripts/constants.js`:
+Replace the entire content of `scripts/constants.js`:
 
 ```js
 export const MODULE_ID = "trapfinder";
@@ -731,9 +731,9 @@ export const FLAGS = {
 };
 ```
 
-- [ ] **Step 2: Registrare l'impostazione dell'avviso a schermo**
+- [ ] **Step 2: Register the on-screen alert setting**
 
-In `scripts/main.js`, sostituire l'intero contenuto:
+In `scripts/main.js`, replace the entire content:
 
 ```js
 import { MODULE_ID, SETTINGS } from "./constants.js";
@@ -768,9 +768,9 @@ Hooks.once("ready", () => {
 });
 ```
 
-- [ ] **Step 3: Scrivere il modulo di notifica**
+- [ ] **Step 3: Write the notification module**
 
-Creare `core/notify.js`:
+Create `core/notify.js`:
 
 ```js
 import { detectionRecipients } from "./recipients.js";
@@ -836,9 +836,9 @@ function detectionText({ observer, detectable, spotted }) {
 }
 ```
 
-- [ ] **Step 4: Aggiungere le stringhe**
+- [ ] **Step 4: Add the strings**
 
-In `lang/en.json`, dentro `DND5E_GM_TOOLKIT`, aggiungere una chiave `settings` a pari livello di `tools`:
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT`, add a `settings` key at the same level as `tools`:
 
 ```json
     "settings": {
@@ -849,7 +849,7 @@ In `lang/en.json`, dentro `DND5E_GM_TOOLKIT`, aggiungere una chiave `settings` a
     }
 ```
 
-In `lang/it.json`, nella stessa posizione:
+In `lang/it.json`, in the same position:
 
 ```json
     "settings": {
@@ -860,39 +860,39 @@ In `lang/it.json`, nella stessa posizione:
     }
 ```
 
-- [ ] **Step 5: Verificare che i test esistenti passino ancora**
+- [ ] **Step 5: Verify the existing tests still pass**
 
 Run: `npm test`
-Expected: PASS, 29 test. Nessun test nuovo: `core/notify.js` tocca `game`, `ChatMessage` e `ui`, quindi si verifica in gioco.
+Expected: PASS, 29 tests. No new test: `core/notify.js` touches `game`, `ChatMessage` and `ui`, so it is verified in game.
 
-- [ ] **Step 6: Verifica manuale in Foundry**
+- [ ] **Step 6: Manual check in Foundry**
 
-Avviare il mondo. In Configure Settings deve comparire "Avviso a schermo oltre alla chat", attivo. Nessun errore in console all'avvio. Il modulo continua a funzionare come prima: il rilevamento trappole non è ancora stato toccato.
+Launch the world. In Configure Settings "On-screen alert as well as chat" must appear, enabled. No console error at startup. The module keeps working as before: trap detection has not been touched yet.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add core/notify.js scripts/constants.js scripts/main.js lang/en.json lang/it.json
-git commit -m "feat(core): notifica mirata via whisper e toast su socket"
+git commit -m "feat(core): targeted notification via whisper and toast over socket"
 ```
 
 ---
 
-### Task 5: Nuovi campi sul behavior esistente
+### Task 5: New fields on the existing behavior
 
-Il tipo resta `trapfinder.trapDetection`: qui si aggiungono solo campi, così il modulo continua a funzionare e le Region esistenti restano valide. La rinomina arriva nella task 7.
+The type stays `trapfinder.trapDetection`: here only fields are added, so the module keeps working and existing Regions stay valid. The rename comes in task 7.
 
 **Files:**
 - Modify: `tools/trap-detection/trap-detection-region-behavior.js`
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: niente.
-- Produces: `behavior.system.skill` (`"prc"|"inv"`), `behavior.system.message` (string), `behavior.system.requiresSight` (boolean), consumati dalla task 6.
+- Consumes: nothing.
+- Produces: `behavior.system.skill` (`"prc"|"inv"`), `behavior.system.message` (string), `behavior.system.requiresSight` (boolean), consumed by task 6.
 
-- [ ] **Step 1: Aggiungere i tre campi allo schema**
+- [ ] **Step 1: Add the three fields to the schema**
 
-In `tools/trap-detection/trap-detection-region-behavior.js`, sostituire il corpo di `defineSchema()`:
+In `tools/trap-detection/trap-detection-region-behavior.js`, replace the body of `defineSchema()`:
 
 ```js
   static defineSchema() {
@@ -924,9 +924,9 @@ In `tools/trap-detection/trap-detection-region-behavior.js`, sostituire il corpo
   }
 ```
 
-- [ ] **Step 2: Aggiungere le stringhe dei nuovi campi**
+- [ ] **Step 2: Add the strings for the new fields**
 
-In `lang/en.json`, dentro `DND5E_GM_TOOLKIT`, aggiungere un blocco `passiveDetection` a pari livello di `trapDetection` (che per ora resta dov'è):
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT`, add a `passiveDetection` block at the same level as `trapDetection` (which stays where it is for now):
 
 ```json
     "passiveDetection": {
@@ -937,7 +937,7 @@ In `lang/en.json`, dentro `DND5E_GM_TOOLKIT`, aggiungere un blocco `passiveDetec
     }
 ```
 
-E dentro `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`, accanto a `dc` e `range`:
+And inside `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`, next to `dc` and `range`:
 
 ```json
           "skill": {
@@ -954,7 +954,7 @@ E dentro `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`, accanto a `dc` e `ran
           }
 ```
 
-In `lang/it.json`, `passiveDetection` a pari livello di `trapDetection`:
+In `lang/it.json`, `passiveDetection` at the same level as `trapDetection`:
 
 ```json
     "passiveDetection": {
@@ -965,7 +965,7 @@ In `lang/it.json`, `passiveDetection` a pari livello di `trapDetection`:
     }
 ```
 
-E dentro `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`:
+And inside `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`:
 
 ```json
           "skill": {
@@ -982,22 +982,22 @@ E dentro `DND5E_GM_TOOLKIT.trapDetection.behavior.FIELDS`:
           }
 ```
 
-- [ ] **Step 3: Verifica manuale in Foundry**
+- [ ] **Step 3: Manual check in Foundry**
 
-Ricaricare. Aprire una Region con il comportamento Rilevamento Trappole: devono comparire i tre campi nuovi, con il menù Abilità passiva popolato con due voci **tradotte** (se compaiono le chiavi grezze `DND5E_GM_TOOLKIT…`, `choices` come funzione non sta venendo rivalutata dopo `i18nInit`: in quel caso costruire le choices dentro l'hook `i18nInit` già presente in `tools/trap-detection/index.js`, assegnandole allo schema del campo). Una Region esistente deve aprirsi senza errori, con `skill` a Percezione.
+Reload. Open a Region with the Trap Detection behavior: the three new fields must appear, with the Passive skill menu populated with two **translated** entries (if the raw `DND5E_GM_TOOLKIT…` keys appear, `choices` as a function is not being re-evaluated after `i18nInit`: in that case build the choices inside the `i18nInit` hook already present in `tools/trap-detection/index.js`, assigning them to the field's schema). An existing Region must open without errors, with `skill` set to Perception.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add tools/trap-detection/trap-detection-region-behavior.js lang/en.json lang/it.json
-git commit -m "feat(trap-detection): campi skill, messaggio e linea di vista sul behavior"
+git commit -m "feat(trap-detection): skill, message and line-of-sight fields on the behavior"
 ```
 
 ---
 
-### Task 6: Ricablare il rilevamento trappole sul nucleo
+### Task 6: Rewire trap detection onto the core
 
-Rifattorizzazione a comportamento osservabile invariato, salvo i tre campi nuovi che ora hanno effetto. Il tipo e i nomi dei file non cambiano ancora.
+Refactoring with unchanged observable behavior, except for the three new fields that now take effect. The type and the file names do not change yet.
 
 **Files:**
 - Create: `tools/trap-detection/sources.js`
@@ -1005,12 +1005,12 @@ Rifattorizzazione a comportamento osservabile invariato, salvo i tre campi nuovi
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `runDetection` (task 1), `reportDetection` (task 4), `closestPointInBounds`/`sceneDistance`/`isSightBlocked` (task 3), `SETTINGS`/`FLAGS` (task 4), i campi dello schema (task 5).
-- Produces: `collectRegionDetectables({scene, observerCenter, actor, moduleId, typeId}) -> Detectable[]`, riusata dalla task 7 dopo la rinomina.
+- Consumes: `runDetection` (task 1), `reportDetection` (task 4), `closestPointInBounds`/`sceneDistance`/`isSightBlocked` (task 3), `SETTINGS`/`FLAGS` (task 4), the schema fields (task 5).
+- Produces: `collectRegionDetectables({scene, observerCenter, actor, moduleId, typeId}) -> Detectable[]`, reused by task 7 after the rename.
 
-- [ ] **Step 1: Scrivere la sorgente delle Region**
+- [ ] **Step 1: Write the Region source**
 
-Creare `tools/trap-detection/sources.js`:
+Create `tools/trap-detection/sources.js`:
 
 ```js
 import { closestPointInBounds } from "../../core/geometry.js";
@@ -1063,9 +1063,9 @@ export function collectRegionDetectables({ scene, observerCenter, actor, moduleI
 }
 ```
 
-- [ ] **Step 2: Sostituire l'hook con la chiamata al nucleo**
+- [ ] **Step 2: Replace the hook with the call to the core**
 
-In `tools/trap-detection/index.js`, sostituire il metodo `onReady` e **rimuovere** le due funzioni in fondo al file (`distanceToRegionBounds` e `postTrapDetectionMessage`), ora coperte da `core/geometry.js` e `core/notify.js`. Aggiungere in testa al file:
+In `tools/trap-detection/index.js`, replace the `onReady` method and **remove** the two functions at the bottom of the file (`distanceToRegionBounds` and `postTrapDetectionMessage`), now covered by `core/geometry.js` and `core/notify.js`. Add at the top of the file:
 
 ```js
 import { runDetection } from "../../core/detection.js";
@@ -1075,7 +1075,7 @@ import { SETTINGS } from "../../scripts/constants.js";
 import { collectRegionDetectables } from "./sources.js";
 ```
 
-E sostituire `onReady`:
+And replace `onReady`:
 
 ```js
   onReady(moduleId) {
@@ -1115,9 +1115,9 @@ E sostituire `onReady`:
   }
 ```
 
-- [ ] **Step 3: Spostare le stringhe dei messaggi**
+- [ ] **Step 3: Move the message strings**
 
-Le chiavi `spotted` e `notSpotted` erano sotto `tools.trapDetection`; ora la sorgente punta a `passiveDetection`. In `lang/en.json` **spostare** le due chiavi da `DND5E_GM_TOOLKIT.tools.trapDetection` a `DND5E_GM_TOOLKIT.passiveDetection`, che diventa:
+The `spotted` and `notSpotted` keys were under `tools.trapDetection`; now the source points at `passiveDetection`. In `lang/en.json` **move** the two keys from `DND5E_GM_TOOLKIT.tools.trapDetection` to `DND5E_GM_TOOLKIT.passiveDetection`, which becomes:
 
 ```json
     "passiveDetection": {
@@ -1130,7 +1130,7 @@ Le chiavi `spotted` e `notSpotted` erano sotto `tools.trapDetection`; ora la sor
     }
 ```
 
-In `lang/it.json`, allo stesso modo:
+In `lang/it.json`, the same way:
 
 ```json
     "passiveDetection": {
@@ -1143,27 +1143,27 @@ In `lang/it.json`, allo stesso modo:
     }
 ```
 
-Il testo non nomina più le trappole: la stessa riga serve ora anche gli indizi.
+The text no longer names traps: the same line now also serves clues.
 
-- [ ] **Step 4: Verificare che i test passino ancora**
+- [ ] **Step 4: Verify the tests still pass**
 
 Run: `npm test`
-Expected: PASS, 29 test
+Expected: PASS, 29 tests
 
-- [ ] **Step 5: Verifica manuale in Foundry**
+- [ ] **Step 5: Manual check in Foundry**
 
-Con una Region trappola già esistente (CD 15, raggio 10), muovere un token PG entro il raggio: deve arrivare un messaggio privato **al DM come prima**, e in più al giocatore proprietario, con il toast. Muoverlo di nuovo: nessuna ripetizione. Impostare un messaggio personalizzato e provarlo con un secondo PG. Impostare la skill su Indagare e verificare che confronti la passiva giusta. Mettere un muro tra PG e Region e verificare che non scatti.
+With an already existing trap Region (DC 15, range 10), move a PC token within range: a private message must arrive **to the GM as before**, and in addition to the owning player, with the toast. Move it again: no repeat. Set a custom message and try it with a second PC. Set the skill to Investigation and verify it compares the right passive. Put a wall between PC and Region and verify it does not trigger.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add tools/trap-detection/sources.js tools/trap-detection/index.js lang/en.json lang/it.json
-git commit -m "refactor(trap-detection): usa il nucleo condiviso per decisione e notifica"
+git commit -m "refactor(trap-detection): use the shared core for decision and notification"
 ```
 
 ---
 
-### Task 7: Rinomina del tipo, della cartella e migrazione
+### Task 7: Rename of the type, the folder, and migration
 
 **Files:**
 - Rename: `tools/trap-detection/` → `tools/passive-detection/`
@@ -1173,19 +1173,19 @@ git commit -m "refactor(trap-detection): usa il nucleo condiviso per decisione e
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: tutto quanto sopra.
-- Produces: `migrateTrapDetectionBehaviors(moduleId) -> Promise<void>`; il tipo `trapfinder.passiveDetection`.
+- Consumes: everything above.
+- Produces: `migrateTrapDetectionBehaviors(moduleId) -> Promise<void>`; the `trapfinder.passiveDetection` type.
 
-- [ ] **Step 1: Rinominare cartella e file mantenendo la storia in git**
+- [ ] **Step 1: Rename folder and file keeping the git history**
 
 ```bash
 git mv tools/trap-detection tools/passive-detection
 git mv tools/passive-detection/trap-detection-region-behavior.js tools/passive-detection/passive-detection-behavior.js
 ```
 
-Rinominare anche la classe dentro il file, da `TrapDetectionRegionBehaviorType` a `PassiveDetectionBehaviorType`, e aggiornare `static LOCALIZATION_PREFIXES` a `["DND5E_GM_TOOLKIT.passiveDetection.behavior"]`.
+Also rename the class inside the file, from `TrapDetectionRegionBehaviorType` to `PassiveDetectionBehaviorType`, and update `static LOCALIZATION_PREFIXES` to `["DND5E_GM_TOOLKIT.passiveDetection.behavior"]`.
 
-- [ ] **Step 2: Dichiarare entrambi i tipi in `module.json`**
+- [ ] **Step 2: Declare both types in `module.json`**
 
 ```json
   "documentTypes": {
@@ -1196,11 +1196,11 @@ Rinominare anche la classe dentro il file, da `TrapDetectionRegionBehaviorType` 
   },
 ```
 
-Il tipo vecchio **deve restare dichiarato** per questa release: se sparisse, i behavior già salvati diventerebbero di tipo sconosciuto prima che la migrazione riesca a leggerli. Si rimuove in una release successiva, quando la migrazione è certamente girata ovunque.
+The old type **must stay declared** for this release: if it disappeared, the behaviors already saved would become an unknown type before the migration manages to read them. It is removed in a later release, when the migration has certainly run everywhere.
 
-- [ ] **Step 3: Scrivere la migrazione**
+- [ ] **Step 3: Write the migration**
 
-Creare `tools/passive-detection/migration.js`:
+Create `tools/passive-detection/migration.js`:
 
 ```js
 import { FLAGS, SETTINGS } from "../../scripts/constants.js";
@@ -1265,14 +1265,14 @@ export async function migrateTrapDetectionBehaviors(moduleId) {
 }
 ```
 
-`skill: "prc"` e `requiresSight: true` sono i valori che riproducono il comportamento precedente: prima esisteva solo la percezione, e non c'era test di visuale ma il raggio era piccolo, quindi attivarlo è il default sensato e resta disattivabile per Region.
+`skill: "prc"` and `requiresSight: true` are the values that reproduce the previous behavior: before only Perception existed, and there was no sight test but the range was small, so enabling it is the sensible default and it stays switchable off per Region.
 
-- [ ] **Step 4: Riscrivere `tools/passive-detection/index.js`**
+- [ ] **Step 4: Rewrite `tools/passive-detection/index.js`**
 
-Le modifiche a questo file sono troppe per applicarle a frammenti. Sostituire l'intero contenuto,
-tenendo **invariati** i due commenti lunghi esistenti: spiegano perché la registrazione del tipo
-non è dietro l'interruttore e perché sta in `register()` e non in `onReady()`, ed entrambe le
-ragioni valgono ancora.
+The changes to this file are too many to apply as fragments. Replace the entire content,
+keeping the two existing long comments **unchanged**: they explain why the type registration
+is not behind the toggle and why it lives in `register()` and not in `onReady()`, and both
+reasons still hold.
 
 ```js
 import { runDetection } from "../../core/detection.js";
@@ -1378,11 +1378,11 @@ export default {
 };
 ```
 
-Attenzione: cambiare `id` da `trap-detection` a `passive-detection` **azzera l'interruttore**,
-perché è la chiave dell'impostazione. Va scritto nelle note di release: lo strumento va riacceso
-una volta sola dopo l'aggiornamento.
+Watch out: changing `id` from `trap-detection` to `passive-detection` **resets the toggle**,
+because it is the setting's key. It must go into the release notes: the tool has to be switched
+back on once after the update.
 
-- [ ] **Step 5: Aggiornare il registro degli strumenti**
+- [ ] **Step 5: Update the tool registry**
 
 In `tools/index.js`:
 
@@ -1402,21 +1402,21 @@ export const TOOLS = [
 ];
 ```
 
-- [ ] **Step 6: Rinominare le chiavi i18n**
+- [ ] **Step 6: Rename the i18n keys**
 
-Due spostamenti nell'albero, identici in `lang/en.json` e `lang/it.json`:
+Two moves in the tree, identical in `lang/en.json` and `lang/it.json`:
 
-| Da | A |
+| From | To |
 |---|---|
 | `DND5E_GM_TOOLKIT.tools.trapDetection` | `DND5E_GM_TOOLKIT.tools.passiveDetection` |
 | `DND5E_GM_TOOLKIT.trapDetection.behavior` | `DND5E_GM_TOOLKIT.passiveDetection.behavior` |
 
-Dopo lo spostamento la chiave `DND5E_GM_TOOLKIT.trapDetection` **non esiste più**: cercarla nei due
-file e verificare che non ne resti traccia. Le chiavi `spotted`/`notSpotted` si erano già spostate
-sotto `passiveDetection` nella task 6, quindi `passiveDetection` ora contiene `spotted`,
-`notSpotted`, `skills`, `behavior` e `migrated`.
+After the move the `DND5E_GM_TOOLKIT.trapDetection` key **no longer exists**: search for it in the
+two files and verify no trace of it is left. The `spotted`/`notSpotted` keys had already moved
+under `passiveDetection` in task 6, so `passiveDetection` now contains `spotted`,
+`notSpotted`, `skills`, `behavior` and `migrated`.
 
-Aggiornare i due titoli e i due suggerimenti, che parlano ancora solo di trappole:
+Update the two titles and the two hints, which still talk only about traps:
 
 `lang/en.json`:
 ```json
@@ -1426,7 +1426,7 @@ Aggiornare i due titoli e i due suggerimenti, che parlano ancora solo di trappol
       }
 ```
 
-E la chiave del messaggio di migrazione, dentro `passiveDetection`:
+And the migration message key, inside `passiveDetection`:
 ```json
       "migrated": "Passive Detection: {count} trap behavior(s) converted to the new format."
 ```
@@ -1443,29 +1443,29 @@ E la chiave del messaggio di migrazione, dentro `passiveDetection`:
       "migrated": "Rilevamento passivo: {count} comportamenti trappola convertiti al nuovo formato."
 ```
 
-E `passiveDetection.behavior.label` diventa `"Passive Detection"` / `"Rilevamento Passivo"`.
+And `passiveDetection.behavior.label` becomes `"Passive Detection"` / `"Rilevamento Passivo"`.
 
-- [ ] **Step 7: Verificare che i test passino ancora**
+- [ ] **Step 7: Verify the tests still pass**
 
 Run: `npm test`
-Expected: PASS, 29 test
+Expected: PASS, 29 tests
 
-- [ ] **Step 8: Verifica manuale della migrazione**
+- [ ] **Step 8: Manual check of the migration**
 
-Su un mondo che ha **già** una Region trappola creata prima di questa modifica: ricaricare, e comparire la notifica "convertiti al nuovo formato". Aprire la Region: il comportamento ora si chiama Rilevamento Passivo, con CD e raggio identici a prima e skill Percezione. Riaccendere l'interruttore (è cambiata chiave) e verificare che il rilevamento funzioni ancora. Ricaricare una seconda volta: **nessuna** seconda notifica, la migrazione non deve rigirare.
+On a world that **already** has a trap Region created before this change: reload, and the "converted to the new format" notification must appear. Open the Region: the behavior is now called Passive Detection, with DC and range identical to before and skill Perception. Switch the toggle back on (its key changed) and verify detection still works. Reload a second time: **no** second notification, the migration must not run again.
 
 - [ ] **Step 9: Commit**
 
 ```bash
 git add -A
-git commit -m "feat(passive-detection): rinomina il tipo del behavior e migra le Region esistenti"
+git commit -m "feat(passive-detection): rename the behavior type and migrate existing Regions"
 ```
 
 ---
 
-### Task 8: Campi delle porte segrete nella scheda muro
+### Task 8: Secret-door fields in the wall sheet
 
-Questa è la parte a rischio dichiarata nella spec. Se `renderWallConfig` non regge in v14, il ripiego è nello Step 5.
+This is the risky part declared in the spec. If `renderWallConfig` does not hold in v14, the fallback is in Step 5.
 
 **Files:**
 - Create: `tools/passive-detection/wall-config.js`
@@ -1474,11 +1474,11 @@ Questa è la parte a rischio dichiarata nella spec. Se `renderWallConfig` non re
 
 **Interfaces:**
 - Consumes: `FLAGS`, `SETTINGS`.
-- Produces: `registerWallConfigInjection(moduleId)`; i flag `dc`, `range`, `message` sui muri.
+- Produces: `registerWallConfigInjection(moduleId)`; the `dc`, `range`, `message` flags on walls.
 
-- [ ] **Step 1: Registrare le due impostazioni di default**
+- [ ] **Step 1: Register the two default settings**
 
-In `tools/passive-detection/index.js`, dentro `register(moduleId)`:
+In `tools/passive-detection/index.js`, inside `register(moduleId)`:
 
 ```js
     game.settings.register(moduleId, SETTINGS.secretDoorDefaultDC, {
@@ -1500,9 +1500,9 @@ In `tools/passive-detection/index.js`, dentro `register(moduleId)`:
     });
 ```
 
-- [ ] **Step 2: Scrivere l'iniezione**
+- [ ] **Step 2: Write the injection**
 
-Creare `tools/passive-detection/wall-config.js`:
+Create `tools/passive-detection/wall-config.js`:
 
 ```js
 import { FLAGS, SETTINGS } from "../../scripts/constants.js";
@@ -1564,19 +1564,19 @@ export function registerWallConfigInjection(moduleId) {
 }
 ```
 
-- [ ] **Step 3: Agganciare l'iniezione**
+- [ ] **Step 3: Hook up the injection**
 
-In `tools/passive-detection/index.js`, dentro `onReady(moduleId)` dopo il controllo dell'interruttore:
+In `tools/passive-detection/index.js`, inside `onReady(moduleId)` after the toggle check:
 
 ```js
     registerWallConfigInjection(moduleId);
 ```
 
-con l'import `import { registerWallConfigInjection } from "./wall-config.js";`
+with the import `import { registerWallConfigInjection } from "./wall-config.js";`
 
-- [ ] **Step 4: Aggiungere le stringhe**
+- [ ] **Step 4: Add the strings**
 
-In `lang/en.json`, dentro `DND5E_GM_TOOLKIT`:
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT`:
 
 ```json
     "secretDoor": {
@@ -1604,7 +1604,7 @@ In `lang/it.json`:
     }
 ```
 
-E dentro `DND5E_GM_TOOLKIT.settings`:
+And inside `DND5E_GM_TOOLKIT.settings`:
 
 ```json
       "secretDoorDefaultDC": {
@@ -1628,22 +1628,22 @@ E dentro `DND5E_GM_TOOLKIT.settings`:
       }
 ```
 
-- [ ] **Step 5: Verifica manuale, ed è il momento del ripiego se serve**
+- [ ] **Step 5: Manual check, and the moment for the fallback if needed**
 
-Ricaricare. Aprire la configurazione di un muro qualsiasi: sotto il tipo di porta deve comparire il riquadro "Rilevamento passivo" con tre campi e i suggerimenti dai default. Inserire CD 12, salvare, riaprire: il valore deve essere ancora lì. Riaprire e richiudere più volte: il riquadro **non deve duplicarsi**.
+Reload. Open the configuration of any wall: under the door type the "Passive detection" box must appear with three fields and the hints from the defaults. Enter DC 12, save, reopen: the value must still be there. Reopen and close several times: the box **must not duplicate**.
 
-Se il riquadro non compare o `html.querySelector` va in errore, l'hook non regge in v14: ripiegare sul pattern già presente in `lockpicking`, cioè un pulsante nei controlli di scena che con un muro selezionato apre un `DialogV2` con gli stessi tre campi e li salva con `setFlag`. La forma dei dati non cambia, quindi la task 9 resta valida così com'è.
+If the box does not appear or `html.querySelector` throws, the hook does not hold in v14: fall back to the pattern already in `lockpicking`, that is a button in the scene controls that, with a wall selected, opens a `DialogV2` with the same three fields and saves them with `setFlag`. The data shape does not change, so task 9 stays valid as it is.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add tools/passive-detection/wall-config.js tools/passive-detection/index.js lang/en.json lang/it.json
-git commit -m "feat(passive-detection): campi di rilevamento nella configurazione del muro"
+git commit -m "feat(passive-detection): detection fields in the wall configuration"
 ```
 
 ---
 
-### Task 9: Rilevamento delle porte segrete
+### Task 9: Secret door detection
 
 **Files:**
 - Modify: `tools/passive-detection/sources.js`
@@ -1651,21 +1651,21 @@ git commit -m "feat(passive-detection): campi di rilevamento nella configurazion
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `closestPointOnSegment`, `pullBack` (task 3), i flag della task 8.
+- Consumes: `closestPointOnSegment`, `pullBack` (task 3), the flags from task 8.
 - Produces: `collectSecretDoorDetectables({scene, observerCenter, actor, moduleId}) -> Detectable[]`.
 
-- [ ] **Step 1: Aggiungere la sorgente dei muri**
+- [ ] **Step 1: Add the wall source**
 
-In `tools/passive-detection/sources.js`, la task 6 ha già scritto in testa:
+In `tools/passive-detection/sources.js`, task 6 already wrote at the top:
 
 ```js
 import { closestPointInBounds } from "../../core/geometry.js";
 import { FLAGS } from "../../scripts/constants.js";
 ```
 
-**Estendere queste due righe esistenti**, non aggiungerne di nuove: importare due volte lo stesso
-identificatore (`FLAGS`, `closestPointInBounds`) da moduli ES è un `SyntaxError`. Il risultato deve
-essere:
+**Extend these two existing lines**, don't add new ones: importing the same identifier twice
+(`FLAGS`, `closestPointInBounds`) from ES modules is a `SyntaxError`. The result must
+be:
 
 ```js
 import { closestPointInBounds, closestPointOnSegment, pullBack } from "../../core/geometry.js";
@@ -1721,9 +1721,9 @@ export function collectSecretDoorDetectables({ scene, observerCenter, actor, mod
 }
 ```
 
-- [ ] **Step 2: Includere i muri nell'hook**
+- [ ] **Step 2: Include the walls in the hook**
 
-In `tools/passive-detection/index.js`, sostituire la costruzione dei rilevabili dentro l'hook:
+In `tools/passive-detection/index.js`, replace the construction of the detectables inside the hook:
 
 ```js
       const detectables = [
@@ -1733,15 +1733,15 @@ In `tools/passive-detection/index.js`, sostituire la costruzione dei rilevabili 
       if (!detectables.length) return;
 ```
 
-e aggiornare l'import:
+and update the import:
 
 ```js
 import { collectRegionDetectables, collectSecretDoorDetectables } from "./sources.js";
 ```
 
-- [ ] **Step 3: Aggiungere le stringhe**
+- [ ] **Step 3: Add the strings**
 
-In `lang/en.json`, dentro `DND5E_GM_TOOLKIT.secretDoor`, accanto a `wallConfig`:
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT.secretDoor`, next to `wallConfig`:
 
 ```json
       "spotted": "{name} spots something odd about this stretch of wall (passive Perception meets/beats DC {dc}).",
@@ -1755,25 +1755,25 @@ In `lang/it.json`:
       "notSpotted": "{name} passa davanti a una porta segreta senza accorgersene (CD {dc})."
 ```
 
-- [ ] **Step 4: Verificare che i test passino ancora**
+- [ ] **Step 4: Verify the tests still pass**
 
 Run: `npm test`
-Expected: PASS, 29 test
+Expected: PASS, 29 tests
 
-- [ ] **Step 5: Verifica manuale**
+- [ ] **Step 5: Manual check**
 
-Disegnare un muro con tipo porta Segreta, senza toccarne i campi: muovere un PG entro il raggio di default e verificare che scatti con la CD di default. Impostare un messaggio personalizzato e provarlo con un secondo PG: il testo personalizzato deve arrivare solo a chi riesce. Mettere la porta segreta **dietro un altro muro** e verificare che non venga rilevata: è il caso che l'arretramento del punto di visuale deve continuare a bloccare. Avvicinare un PG a contatto con la porta: deve comunque essere rilevata, perché sotto mezza casella il test di visuale viene saltato. **La porta non deve mai essere rivelata**: nessun cambio di stato del muro.
+Draw a wall with door type Secret, without touching its fields: move a PC within the default range and verify it triggers with the default DC. Set a custom message and try it with a second PC: the custom text must reach only whoever succeeds. Put the secret door **behind another wall** and verify it is not detected: that is the case the pull-back of the sight point must keep blocking. Bring a PC into contact with the door: it must still be detected, because below half a square the sight test is skipped. **The door must never be revealed**: no change to the wall's state.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add tools/passive-detection/sources.js tools/passive-detection/index.js lang/en.json lang/it.json
-git commit -m "feat(passive-detection): rilevamento passivo delle porte segrete"
+git commit -m "feat(passive-detection): passive detection of secret doors"
 ```
 
 ---
 
-### Task 10: Rilevamento delle creature nascoste
+### Task 10: Hidden creature detection
 
 **Files:**
 - Create: `tools/hidden-creatures/index.js`
@@ -1782,12 +1782,12 @@ git commit -m "feat(passive-detection): rilevamento passivo delle porte segrete"
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: nucleo e geometria.
-- Produces: da `sources.js` — `collectCreatureDetectables({targets, actor, moduleId}) -> Detectable[]`, `isHiddenCreature(tokenDocument) -> boolean`, `tokenCenter(tokenDocument) -> {x, y}`, e la costante `HIDING_STATUS = "hiding"`, usata dalle task 11 e 12.
+- Consumes: core and geometry.
+- Produces: from `sources.js` — `collectCreatureDetectables({targets, actor, moduleId}) -> Detectable[]`, `isHiddenCreature(tokenDocument) -> boolean`, `tokenCenter(tokenDocument) -> {x, y}`, and the constant `HIDING_STATUS = "hiding"`, used by tasks 11 and 12.
 
-- [ ] **Step 1: Scrivere la sorgente delle creature**
+- [ ] **Step 1: Write the creature source**
 
-Creare `tools/hidden-creatures/sources.js`:
+Create `tools/hidden-creatures/sources.js`:
 
 ```js
 import { FLAGS, SETTINGS } from "../../scripts/constants.js";
@@ -1855,9 +1855,9 @@ export function collectCreatureDetectables({ targets, actor, moduleId }) {
 }
 ```
 
-- [ ] **Step 2: Scrivere lo strumento**
+- [ ] **Step 2: Write the tool**
 
-Creare `tools/hidden-creatures/index.js`:
+Create `tools/hidden-creatures/index.js`:
 
 ```js
 import { runDetection } from "../../core/detection.js";
@@ -1971,7 +1971,7 @@ async function detect({ observerToken, targets, moduleId }) {
 }
 ```
 
-- [ ] **Step 3: Registrare lo strumento**
+- [ ] **Step 3: Register the tool**
 
 In `tools/index.js`:
 
@@ -1993,9 +1993,9 @@ export const TOOLS = [
 ];
 ```
 
-- [ ] **Step 4: Aggiungere le stringhe**
+- [ ] **Step 4: Add the strings**
 
-In `lang/en.json`, dentro `tools`:
+In `lang/en.json`, inside `tools`:
 
 ```json
       "hiddenCreatures": {
@@ -2004,7 +2004,7 @@ In `lang/en.json`, dentro `tools`:
       }
 ```
 
-E a primo livello dentro `DND5E_GM_TOOLKIT`:
+And at top level inside `DND5E_GM_TOOLKIT`:
 
 ```json
     "hiddenCreatures": {
@@ -2013,7 +2013,7 @@ E a primo livello dentro `DND5E_GM_TOOLKIT`:
     }
 ```
 
-E dentro `settings`:
+And inside `settings`:
 
 ```json
       "creatureDetectionRange": {
@@ -2022,7 +2022,7 @@ E dentro `settings`:
       }
 ```
 
-In `lang/it.json`, dentro `tools`:
+In `lang/it.json`, inside `tools`:
 
 ```json
       "hiddenCreatures": {
@@ -2045,25 +2045,25 @@ In `lang/it.json`, dentro `tools`:
       }
 ```
 
-- [ ] **Step 5: Verificare che i test passino ancora**
+- [ ] **Step 5: Verify the tests still pass**
 
 Run: `npm test`
-Expected: PASS, 29 test
+Expected: PASS, 29 tests
 
-- [ ] **Step 6: Verifica manuale**
+- [ ] **Step 6: Manual check**
 
-Attivare lo strumento e ricaricare. Prendere un PNG con Furtività, nasconderne il token e applicargli lo status Nascosto. Muovere un PG entro 30: chi ha la passiva sufficiente riceve il messaggio, gli altri no e il DM vede il fallimento. Muovere di nuovo lo stesso PG: nessuna ripetizione. **Muovere la creatura** verso un PG fermo: il controllo deve scattare lo stesso, è il caso simmetrico. Togliere lo status Nascosto e rimetterlo: tutti devono avere una nuova occasione. Verificare che con un muro in mezzo non scatti.
+Enable the tool and reload. Take an NPC with Stealth, hide its token and apply the Hiding status to it. Move a PC within 30: whoever has a sufficient passive gets the message, the others don't and the GM sees the failure. Move the same PC again: no repeat. **Move the creature** toward a PC standing still: the check must trigger anyway, it is the symmetric case. Remove the Hiding status and put it back: everyone must get a new chance. Verify it does not trigger with a wall in between.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add tools/hidden-creatures/ tools/index.js lang/en.json lang/it.json
-git commit -m "feat(hidden-creatures): percezione passiva contro furtività passiva"
+git commit -m "feat(hidden-creatures): passive Perception against passive Stealth"
 ```
 
 ---
 
-### Task 11: Avviso sui marcatori incoerenti
+### Task 11: Warning on inconsistent markers
 
 **Files:**
 - Create: `tools/hidden-creatures/marker-guard.js`
@@ -2071,12 +2071,12 @@ git commit -m "feat(hidden-creatures): percezione passiva contro furtività pass
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `HIDING_STATUS` dalla task 10.
+- Consumes: `HIDING_STATUS` from task 10.
 - Produces: `registerMarkerGuard()`.
 
-- [ ] **Step 1: Scrivere la guardia**
+- [ ] **Step 1: Write the guard**
 
-Creare `tools/hidden-creatures/marker-guard.js`:
+Create `tools/hidden-creatures/marker-guard.js`:
 
 ```js
 import { HIDING_STATUS } from "./sources.js";
@@ -2124,19 +2124,19 @@ export function registerMarkerGuard() {
 }
 ```
 
-- [ ] **Step 2: Agganciare la guardia**
+- [ ] **Step 2: Hook up the guard**
 
-In `tools/hidden-creatures/index.js`, in coda a `onReady(moduleId)`:
+In `tools/hidden-creatures/index.js`, at the end of `onReady(moduleId)`:
 
 ```js
     registerMarkerGuard();
 ```
 
-con `import { registerMarkerGuard } from "./marker-guard.js";`
+with `import { registerMarkerGuard } from "./marker-guard.js";`
 
-- [ ] **Step 3: Aggiungere le stringhe**
+- [ ] **Step 3: Add the strings**
 
-In `lang/en.json`, dentro `DND5E_GM_TOOLKIT.hiddenCreatures`:
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT.hiddenCreatures`:
 
 ```json
       "markerWarning": {
@@ -2154,20 +2154,20 @@ In `lang/it.json`:
       }
 ```
 
-- [ ] **Step 4: Verifica manuale**
+- [ ] **Step 4: Manual check**
 
-Applicare lo status Nascosto a un PNG col token visibile: deve comparire l'avviso, solo al DM. Nascondere il token: nessun avviso ulteriore, e da quel momento il rilevamento funziona. Nascondere un token senza status: avviso dell'altro tipo. Nascondere un token PG: **nessun** avviso, i PG non sono soggetti a questo controllo.
+Apply the Hiding status to an NPC whose token is visible: the warning must appear, to the GM only. Hide the token: no further warning, and from then on detection works. Hide a token with no status: warning of the other kind. Hide a PC token: **no** warning, PCs are not subject to this check.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add tools/hidden-creatures/marker-guard.js tools/hidden-creatures/index.js lang/en.json lang/it.json
-git commit -m "feat(hidden-creatures): avvisa il DM quando i due marcatori sono incoerenti"
+git commit -m "feat(hidden-creatures): warn the GM when the two markers are inconsistent"
 ```
 
 ---
 
-### Task 12: Proposta di sorpresa
+### Task 12: Surprise proposal
 
 **Files:**
 - Create: `tools/hidden-creatures/surprise.js`
@@ -2178,9 +2178,9 @@ git commit -m "feat(hidden-creatures): avvisa il DM quando i due marcatori sono 
 - Consumes: `isHiddenCreature` (task 10), `FLAGS`.
 - Produces: `registerSurprisePrompt(moduleId)`.
 
-- [ ] **Step 1: Scrivere la proposta**
+- [ ] **Step 1: Write the proposal**
 
-Creare `tools/hidden-creatures/surprise.js`:
+Create `tools/hidden-creatures/surprise.js`:
 
 ```js
 import { FLAGS } from "../../scripts/constants.js";
@@ -2262,19 +2262,19 @@ async function promptForSurprised(candidates) {
 }
 ```
 
-- [ ] **Step 2: Agganciare la proposta**
+- [ ] **Step 2: Hook up the proposal**
 
-In `tools/hidden-creatures/index.js`, in coda a `onReady(moduleId)`:
+In `tools/hidden-creatures/index.js`, at the end of `onReady(moduleId)`:
 
 ```js
     registerSurprisePrompt(moduleId);
 ```
 
-con `import { registerSurprisePrompt } from "./surprise.js";`
+with `import { registerSurprisePrompt } from "./surprise.js";`
 
-- [ ] **Step 3: Aggiungere le stringhe**
+- [ ] **Step 3: Add the strings**
 
-In `lang/en.json`, a primo livello dentro `DND5E_GM_TOOLKIT`:
+In `lang/en.json`, at top level inside `DND5E_GM_TOOLKIT`:
 
 ```json
     "surprise": {
@@ -2294,165 +2294,69 @@ In `lang/it.json`:
     }
 ```
 
-- [ ] **Step 4: Verifica manuale**
+- [ ] **Step 4: Manual check**
 
-Con una creatura nascosta sulla scena non individuata da almeno un PG, creare un incontro: deve comparire il dialog con l'elenco, tutti spuntati. Confermare: i PG scelti prendono l'icona Sorpreso. Tirare l'iniziativa e verificare che dnd5e applichi lo svantaggio. Annullare il dialog su un secondo incontro: **nessuno** status applicato. Creare un incontro su una scena **senza** creature nascoste: nessun dialog. Far individuare la creatura a tutti i PG e creare un incontro: nessun dialog.
+With a hidden creature on the scene not spotted by at least one PC, create an encounter: the dialog with the list must appear, all ticked. Confirm: the chosen PCs get the Surprised icon. Roll initiative and verify dnd5e applies the disadvantage. Cancel the dialog on a second encounter: **no** status applied. Create an encounter on a scene **without** hidden creatures: no dialog. Have all PCs spot the creature and create an encounter: no dialog.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add tools/hidden-creatures/surprise.js tools/hidden-creatures/index.js lang/en.json lang/it.json
-git commit -m "feat(hidden-creatures): proposta di sorpresa alla creazione dell'incontro"
+git commit -m "feat(hidden-creatures): surprise proposal when the encounter is created"
 ```
 
 ---
 
-### Task 13: Documentazione
+### Task 13: Documentation
 
 **Files:**
 - Modify: `README.md`
 
 **Interfaces:**
-- Consumes: tutto.
-- Produces: niente codice.
+- Consumes: everything.
+- Produces: no code.
 
-- [ ] **Step 1: Sostituire l'intestazione e il paragrafo di apertura**
+> The README text this task wrote was in Italian at the time. The README has since been converted
+> to English; its current content supersedes the snippets that used to be quoted here.
 
-Il testo attuale dichiara "sono solo due" interruttori, cosa che non è più vera. Sostituire le
-prime righe fino alla sezione Installazione con:
+- [ ] **Step 1: Replace the heading and the opening paragraph**
 
-```markdown
-# GM Toolkit (dnd5e)
+The current text says there are "only two" toggles, which is no longer true. Replace the first lines
+up to the Installation section with the new opening: one toggle per tool plus a few settings in a
+flat list, the reload requirement, and the common thread "the module never rolls dice".
 
-Modulo Foundry VTT (v14+, `dnd5e` richiesto) con strumenti/automazioni per condurre la sessione —
-**non house rules** (nessuna variante di regola opzionale: per quelle vedi il modulo separato
-[dnd5e-house-rules](https://github.com/FabioC-88/dnd5e-house-rules)). Ogni strumento vive nella
-propria cartella, e si attiva/disattiva da **Configure Settings**, sotto "GM Toolkit (dnd5e)":
-tre interruttori più quattro impostazioni, in una lista piatta senza popup dedicato. **Dopo aver
-attivato/disattivato uno strumento, Foundry ti chiederà di ricaricare**: è necessario, alcune
-registrazioni (comportamenti, wrapper, hook) avvengono una sola volta all'avvio.
+- [ ] **Step 2: Rewrite the "Available tools" section**
 
-Il filo conduttore degli strumenti di rilevamento: **il modulo non tira mai i dadi**. Confronta
-valori passivi e ti dice l'esito, così i controlli che spezzerebbero il ritmo non arrivano mai al
-tavolo come richiesta di tirare.
-```
+Replace the whole section, from the heading down to and including the note on the barred door, with
+one entry each for Passive Detection (traps and clues on Regions; secret doors on the wall itself,
+never revealed), Hidden Creatures (both markers required, symmetric check, surprise proposal on
+encounter creation) and Lockpicking; then the "Where notifications go" section, the barred-door note
+and an "Upgrading from a previous version" section explaining the automatic Region migration and
+the need to switch the toggle back on.
 
-- [ ] **Step 2: Riscrivere la sezione "Strumenti disponibili"**
+- [ ] **Step 3: Update "Adding a new tool" and "Structure"**
 
-Sostituire l'intera sezione, dal titolo fino alla nota sulla porta bloccata inclusa:
+At the end of the "Adding a new tool" section, before the paragraph on the bundler, add the note that
+a new **passive detection** needs no change to `core/`: a function producing *detectables* (shape
+documented in `core/detection.js`) passed to `runDetection` is enough.
 
-```markdown
-## Strumenti disponibili
+Replace the "Structure" block with the tree that lists `core/` (`detection.js`, `recipients.js`,
+`geometry.js`, `notify.js`), `tools/<name>/index.js`, `lib/libwrapper-shim.js`, `lang/{en,it}.json`
+and `tests/`, followed by: "`lib/` is reserved for vendored third-party code; `core/` is our own
+shared code."
 
-- **Rilevamento passivo** (`passive-detection`, disattivato di default) — copre due contenitori
-  diversi per lo stesso concetto.
+- [ ] **Step 4: Add tests and the release warning**
 
-  *Trappole e indizi*: disegna una **Region** sul layer Regions (invisibile ai giocatori) nella
-  vera posizione di ciò che è nascosto e aggiungile il comportamento "Rilevamento Passivo".
-  Imposti **abilità** (percezione o indagare), **CD**, **raggio**, un **messaggio** facoltativo e
-  se serve la **linea di vista**. Quando un token PG entra nel raggio, la sua passiva contro la CD
-  decide se se ne accorge. Un solo esito per PG per punto.
+Before the "Release" section, add a "Tests" section (`npm install`, `npm test`; the tests cover the
+pure code, persistence comes in through callbacks; `npm` is only for the tests).
 
-  *Porte segrete*: non serve alcuna Region. Un muro con tipo porta **Segreta** partecipa da solo,
-  con la CD e il raggio di default che imposti una volta per il mondo; nella configurazione del
-  muro trovi i campi per sovrascriverli su quella singola porta e per scrivere un messaggio suo.
-  **La porta non viene mai rivelata**: parte solo la notifica, e cosa farne decide il giocatore.
+At the end of the "Release" section, add the warning that the "Create Zip Archive" step lists the
+folders to include **explicitly**, so a new folder missing from that list works in development and
+is missing from the release.
 
-- **Creature nascoste** (`hidden-creatures`, disattivato di default) — percezione passiva del PG
-  contro la **furtività passiva** della creatura (10 + modificatore, letta al volo: nessun tiro,
-  niente da impostare sul PNG). Perché un token partecipi servono **entrambi** i marcatori: token
-  nascosto sulla canvas **e** status "Nascosto". Se ne metti uno solo il modulo te lo dice, invece
-  di non fare niente in silenzio. Il controllo è simmetrico: scatta anche quando è la creatura a
-  muoversi verso il gruppo. Alla creazione di un incontro, se ci sono agguatanti non individuati,
-  il modulo ti propone chi marcare come **Sorpreso** — con conferma, e prima che tu tiri
-  l'iniziativa, perché è al momento del tiro che dnd5e applica lo svantaggio.
-
-- **Scasso Serrature** (`lockpicking`, disattivato di default) — clicca una porta chiusa a chiave
-  **come fai già normalmente**: invece del comportamento silenzioso di default (un suono e basta),
-  compare la richiesta di tentare lo scasso con i Grimaldelli da Scasso del PG che hai attualmente
-  controllato/selezionato. La prima volta su una porta ti chiede la CD della serratura e la ricorda
-  per i tentativi successivi. Solo i click da DM vengono intercettati — per i giocatori il
-  comportamento resta quello nativo di Foundry.
-
-### Dove arrivano le notifiche
-
-Chi **riesce** riceve un messaggio privato in chat, più un avviso a schermo se l'impostazione è
-attiva; il DM ne riceve copia. Chi **fallisce** non riceve niente: il fallimento lo vedi solo tu,
-perché dire a un giocatore che ha fallito gli dice già che c'era qualcosa da notare.
-
-**Nota**: "porta bloccata/sbarrata" (un ulteriore stato oltre chiusa/aperta/chiusa a chiave, che
-richiede di essere sfondata anche una volta scassinata) è rimandata a un incremento successivo — non
-ha alcun analogo nativo in Foundry e dipende dallo stesso meccanismo di intercettazione dei click
-usato per lo scasso, da validare al tavolo prima di estenderlo.
-
-### Aggiornare da una versione precedente
-
-Le Region trappola già disegnate vengono **convertite automaticamente** al primo avvio, e ricevi
-una notifica con quante ne sono state migrate. Devi però **riaccendere l'interruttore** una volta:
-lo strumento è passato da `trap-detection` a `passive-detection`, e con la chiave cambia anche
-l'impostazione che ricorda se era attivo.
-```
-
-- [ ] **Step 3: Aggiornare "Aggiungere un nuovo strumento" e "Struttura"**
-
-In fondo alla sezione "Aggiungere un nuovo strumento", prima del paragrafo sul bundler, aggiungere:
-
-```markdown
-Se lo strumento nuovo è un **rilevamento passivo** non serve toccare `core/`: basta una funzione
-che produca *rilevabili* (la forma è documentata in `core/detection.js`) e passarli a
-`runDetection`. Deduplica, raggio, linea di vista, confronto con la passiva e scelta dei
-destinatari sono già fatti.
-```
-
-Sostituire il blocco della sezione "Struttura" con:
-
-```markdown
-```
-module.json                        manifest Foundry
-scripts/main.js                    hook "init"/"ready": registra tutti gli strumenti
-scripts/constants.js               id del modulo, chiavi di impostazioni e flag
-core/                              codice condiviso fra strumenti (non è uno strumento)
-  detection.js                     la decisione: dedup, raggio, visuale, passiva vs CD
-  recipients.js                    chi riceve il messaggio in chat e chi l'avviso a schermo
-  geometry.js                      distanze e test di linea di vista
-  notify.js                        messaggio privato in chat e avviso via socket
-tools/<nome>/index.js              uno strumento per cartella
-lib/libwrapper-shim.js             shim ufficiale di libWrapper (MIT, vendored da ruipin/fvtt-lib-wrapper)
-lang/{en,it}.json                  traduzioni
-tests/                             test del solo core, girano con vitest
-```
-
-`lib/` è riservato al codice di terzi vendorizzato; `core/` è codice nostro condiviso.
-```
-
-- [ ] **Step 4: Aggiungere test e avvertenza sulla release**
-
-Prima della sezione "Release", aggiungere:
-
-```markdown
-## Test
-
-```
-npm install
-npm test
-```
-
-I test coprono **solo `core/`**, che è puro: la persistenza vi entra da callback, quindi si prova
-senza Foundry. Le sorgenti e le iniezioni di interfaccia si verificano in gioco. Niente bundler:
-`npm` serve solo ai test, Foundry continua a caricare i moduli ES direttamente.
-```
-
-E in fondo alla sezione "Release", aggiungere:
-
-```markdown
-Attenzione: lo step "Create Zip Archive" elenca **esplicitamente** le cartelle da includere. Una
-cartella nuova che non venga aggiunta a quell'elenco funziona in sviluppo e manca nella release,
-dove il modulo va in errore al primo import.
-```
-
-- [ ] **Step 2: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add README.md
-git commit -m "docs: aggiorna il README per il rilevamento passivo"
+git commit -m "docs: update the README for passive detection"
 ```
