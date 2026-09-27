@@ -2,7 +2,7 @@
   "id": "trapfinder",
   "title": "GM Toolkit (dnd5e)",
   "description": "Tools and automations for running dnd5e sessions: passive detection of traps, hidden clues and secret doors, detection of hidden creatures with a surprise proposal, and lockpicking. They automate passive checks without stopping the table for a roll. These are not house rules (optional rule variants): they are GM utilities.",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "authors": [
     {
       "name": "Fabio"
@@ -57,7 +57,7 @@
   ],
   "url": "https://github.com/FabioC-88/trapfinder",
   "manifest": "https://github.com/FabioC-88/trapfinder/releases/latest/download/module.json",
-  "download": "https://github.com/FabioC-88/trapfinder/releases/download/v0.0.4/trapfinder-v0.0.4.zip",
+  "download": "https://github.com/FabioC-88/trapfinder/releases/download/v0.1.0/trapfinder-v0.1.0.zip",
   "readme": "https://github.com/FabioC-88/trapfinder/blob/main/README.md",
   "license": "LICENSE"
 }
