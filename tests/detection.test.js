@@ -29,7 +29,7 @@ const clear = () => false;
 const blocked = () => true;
 
 describe("runDetection", () => {
-  it("salta un rilevabile già visto senza notificare né segnare", async () => {
+  it("skips an already-seen detectable without notifying or marking", async () => {
     const report = vi.fn();
     const d = detectable({ hasSeen: () => true });
 
@@ -42,7 +42,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("salta un rilevabile fuori raggio senza segnarlo, così resta valutabile più avanti", async () => {
+  it("skips an out-of-range detectable without marking it, so it stays checkable later", async () => {
     const report = vi.fn();
     const d = detectable();
 
@@ -54,7 +54,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("individua quando la passiva eguaglia la CD", async () => {
+  it("spots when the passive equals the DC", async () => {
     const report = vi.fn();
     const d = detectable({ dc: 12 });
 
@@ -67,7 +67,7 @@ describe("runDetection", () => {
     expect(report).toHaveBeenCalledWith(result);
   });
 
-  it("segna come visto anche chi fallisce, per non ripetere la notifica al DM", async () => {
+  it("marks as seen even whoever fails, so the GM notification is not repeated", async () => {
     const report = vi.fn();
     const d = detectable({ dc: 20 });
 
@@ -79,7 +79,7 @@ describe("runDetection", () => {
     expect(d.markSeen).toHaveBeenCalledOnce();
   });
 
-  it("salta se la visuale è bloccata e il rilevabile la richiede", async () => {
+  it("skips if sight is blocked and the detectable requires it", async () => {
     const report = vi.fn();
     const d = detectable({ requiresSight: true });
 
@@ -91,7 +91,7 @@ describe("runDetection", () => {
     expect(d.markSeen).not.toHaveBeenCalled();
   });
 
-  it("valuta comunque se il rilevabile non richiede visuale", async () => {
+  it("still evaluates if the detectable does not require sight", async () => {
     const report = vi.fn();
     const d = detectable({ requiresSight: false });
 
@@ -102,7 +102,7 @@ describe("runDetection", () => {
     expect(report).toHaveBeenCalledOnce();
   });
 
-  it("usa sightPoint per la visuale e point per la distanza", async () => {
+  it("uses sightPoint for sight and point for distance", async () => {
     const measure = vi.fn(() => 5);
     const isSightBlocked = vi.fn(() => false);
     const d = detectable({ point: { x: 1, y: 1 }, sightPoint: { x: 2, y: 2 } });
@@ -115,7 +115,7 @@ describe("runDetection", () => {
     expect(isSightBlocked).toHaveBeenCalledWith({ x: 2, y: 2 });
   });
 
-  it("legge la skill indicata dal rilevabile", async () => {
+  it("reads the skill named by the detectable", async () => {
     const d = detectable({ skill: "inv", dc: 11 });
 
     const [result] = await runDetection({
@@ -126,7 +126,7 @@ describe("runDetection", () => {
     expect(result.spotted).toBe(true);
   });
 
-  it("tratta una skill assente come passiva 0 invece di esplodere", async () => {
+  it("treats a missing skill as passive 0 instead of blowing up", async () => {
     const d = detectable({ skill: "prc", dc: 1 });
 
     const [result] = await runDetection({
@@ -138,7 +138,7 @@ describe("runDetection", () => {
     expect(result.spotted).toBe(false);
   });
 
-  it("valuta più rilevabili nello stesso passaggio", async () => {
+  it("evaluates several detectables in the same pass", async () => {
     const report = vi.fn();
 
     const results = await runDetection({

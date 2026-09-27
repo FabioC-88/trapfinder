@@ -1,7 +1,7 @@
 {
   "id": "trapfinder",
   "title": "GM Toolkit (dnd5e)",
-  "description": "Tools and automations for running dnd5e sessions: passive detection of traps, hidden clues and secret doors, detection of hidden creatures with a surprise proposal, lockpicking, and monster recognition. They automate passive checks without stopping the table for a roll. These are not house rules (optional rule variants): they are GM utilities.",
+  "description": "Tools and automations for running dnd5e sessions: passive detection of traps, hidden clues and secret doors, detection of hidden creatures with a surprise proposal, and lockpicking. They automate passive checks without stopping the table for a roll. These are not house rules (optional rule variants): they are GM utilities.",
   "version": "0.0.4",
   "authors": [
     {
@@ -35,7 +35,7 @@
     "scripts/main.js"
   ],
   "styles": [
-    "tools/monster-recognition/monster-list.css"
+    "tools/party-encumbrance/party-encumbrance.css"
   ],
   "documentTypes": {
     "RegionBehavior": {

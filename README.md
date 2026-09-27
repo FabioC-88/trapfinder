@@ -59,31 +59,17 @@ The module ships in English with a complete Italian localization.
   a door it asks you for the lock's DC and remembers it for later attempts. Only GM clicks are
   intercepted — for players the behavior stays Foundry's native one.
 
-- **Monster Recognition** (`monster-recognition`, off by default) — when combat starts, every PC is
-  checked against every hostile monster present: the correct passive knowledge skill for the
-  creature type (Arcana/Nature/Religion/History, depending on the NPC's type) against DC
-  **10 + Challenge Rating**. Whoever meets it receives in chat what their character remembers, told
-  in words: *"It is a Large giant. It sees well even in the dark. Its wounds close on their own
-  while you are still fighting. It has a very keen sense of smell. It attacks with bite and claw."*
-  No numbers, no rules terms — that is the stat block, which you already have open. But the
-  information below is true: senses, special speeds, resistances, immunities, vulnerabilities,
-  languages, attacks and traits are read from the Actor you placed, so they stay correct even for a
-  monster you have modified or reskinned, and they also work for NPCs that are not in the internal
-  database.
-  Recognition applies per kind of creature, not per single NPC: once a Goblin has been recognized,
-  later Goblins are always recognized, without a check, with a compact message (one click to
-  reread the card). The module includes an internal database of common monsters that covers only
-  the **lore** — the part a stat block does not have — matched by name to the NPCs already in the
-  world: from the **Monster List** panel (in Configure Settings) you can fix the match, the skill,
-  and write a custom description for each NPC. A hostile NPC with no resolvable type and no manual
-  fix is skipped with a warning only for you, never silently.
-
-  If a player wants to attempt an **active check** instead of relying on the passive, they click the
-  book icon on the NPC's Token HUD: it makes the currently controlled/selected PC roll the same
-  knowledge skill (a real roll, public in chat, with the native dialog for advantage/bonus — here,
-  unlike the rest of the module, the die is actually shown because the player is explicitly asking
-  for it). If the PC has already recognized that kind of monster, no roll: the compact message
-  arrives right away.
+- **Party Stash Encumbrance** (`party-encumbrance`, off by default) — dnd5e gives a **Group** actor
+  no encumbrance of its own, so the coins and loot the party keeps in it weigh on nobody. With this
+  tool on, the Inventory tab of every Group's sheet gets a **Distribution** menu: *Equal shares*,
+  *By available capacity* (whoever has more room left takes more), or *By maximum capacity* - each
+  Group starts on **None**, so nothing is split until a GM picks one. Each member card gets a
+  **Carries** checkbox: untick everyone but the pack mule and the mule takes it all. The share
+  counts toward each carrier's encumbrance bar and statuses, and hovering a PC's bar shows how much
+  of it comes from the stash. Nothing is moved and nothing is written to the PCs: switch the tool
+  off and every bar is native again. Only the GM can change the distribution; players see it
+  read-only. Vehicles never carry: for a cart, use dnd5e's own primary vehicle with
+  draft animals.
 
 ### Where notifications go
 

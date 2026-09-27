@@ -19,6 +19,11 @@
         "rollFlavor": "Tentativo di Scasso (CD {dc})",
         "success": "{name} scassina la serratura con successo. La porta ora è sbloccata.",
         "failure": "{name} non riesce a scassinare la serratura."
+      },
+      "partyEncumbrance": {
+        "title": "Ingombro della Cassa Comune",
+        "hint": "Gli oggetti e le monete di un attore Gruppo di norma non pesano su nessuno. Con questo strumento attivo, la scheda Inventario di ogni Gruppo ha un menu di distribuzione: il peso della cassa viene diviso tra i membri che la portano (in parti uguali, per carico disponibile o per capacità massima) e conta nel loro ingombro. Non si sposta niente: la quota è calcolata al volo.",
+        "unsupported": "Ingombro della Cassa Comune: questa versione di dnd5e non espone il calcolo dell'ingombro che serve allo strumento, che quindi resta spento."
       }
     },
     "settings": {
@@ -98,6 +103,21 @@
       "title": "Sorpresi dall'imboscata?",
       "hint": "Questi PG non hanno individuato almeno una creatura nascosta su questa scena. Togli la spunta a chi non deve essere sorpreso, poi conferma. Applicalo prima di tirare l'iniziativa: dnd5e assegna lo svantaggio al momento del tiro.",
       "confirm": "Marca come sorpresi"
+    },
+    "partyEncumbrance": {
+      "stashWeight": "Peso della cassa: {weight} {units}",
+      "distribution": "Distribuzione",
+      "modes": {
+        "none": "Nessuna",
+        "equal": "Parti uguali",
+        "available": "Per carico disponibile",
+        "maximum": "Per capacità massima"
+      },
+      "carries": "Trasporta",
+      "notCarrying": "Non trasporta",
+      "share": "Quota cassa: {weight} {units}",
+      "noCarriers": "Nessun portatore: la cassa non pesa su nessuno.",
+      "tooltipLine": "Di cui {weight} {units} dalla cassa di {group}"
     }
   }
 }

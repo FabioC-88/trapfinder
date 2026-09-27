@@ -9,19 +9,19 @@ describe("closestPointOnSegment", () => {
   const a = { x: 0, y: 0 };
   const b = { x: 100, y: 0 };
 
-  it("proietta un punto perpendicolare sul segmento", () => {
+  it("projects a point perpendicularly onto the segment", () => {
     expect(closestPointOnSegment({ x: 40, y: 30 }, a, b)).toEqual({ x: 40, y: 0 });
   });
 
-  it("si ferma all'estremo A per un punto oltre A", () => {
+  it("stops at end A for a point beyond A", () => {
     expect(closestPointOnSegment({ x: -50, y: 20 }, a, b)).toEqual({ x: 0, y: 0 });
   });
 
-  it("si ferma all'estremo B per un punto oltre B", () => {
+  it("stops at end B for a point beyond B", () => {
     expect(closestPointOnSegment({ x: 250, y: 20 }, a, b)).toEqual({ x: 100, y: 0 });
   });
 
-  it("restituisce A per un segmento degenere, senza dividere per zero", () => {
+  it("returns A for a degenerate segment, without dividing by zero", () => {
     expect(closestPointOnSegment({ x: 10, y: 10 }, a, { x: 0, y: 0 })).toEqual({ x: 0, y: 0 });
   });
 });
@@ -29,35 +29,35 @@ describe("closestPointOnSegment", () => {
 describe("closestPointInBounds", () => {
   const bounds = { left: 100, right: 200, top: 100, bottom: 200 };
 
-  it("restituisce il punto stesso se è dentro", () => {
+  it("returns the point itself if it is inside", () => {
     expect(closestPointInBounds({ x: 150, y: 150 }, bounds)).toEqual({ x: 150, y: 150 });
   });
 
-  it("blocca su un lato per un punto fuori su un solo asse", () => {
+  it("clamps to a side for a point outside on one axis only", () => {
     expect(closestPointInBounds({ x: 50, y: 150 }, bounds)).toEqual({ x: 100, y: 150 });
   });
 
-  it("blocca su uno spigolo per un punto fuori in diagonale", () => {
+  it("clamps to a corner for a point outside diagonally", () => {
     expect(closestPointInBounds({ x: 50, y: 500 }, bounds)).toEqual({ x: 100, y: 200 });
   });
 });
 
 describe("pullBack", () => {
-  it("arretra il punto verso l'osservatore della distanza chiesta", () => {
+  it("pulls the point back toward the observer by the requested distance", () => {
     expect(pullBack({ x: 100, y: 0 }, { x: 0, y: 0 }, 25)).toEqual({ x: 75, y: 0 });
   });
 
-  it("arretra correttamente anche in diagonale", () => {
+  it("pulls back correctly on a diagonal too", () => {
     const result = pullBack({ x: 30, y: 40 }, { x: 0, y: 0 }, 10);
     expect(result.x).toBeCloseTo(24);
     expect(result.y).toBeCloseTo(32);
   });
 
-  it("restituisce null se l'osservatore è più vicino della distanza di arretramento", () => {
+  it("returns null if the observer is closer than the pull-back distance", () => {
     expect(pullBack({ x: 10, y: 0 }, { x: 0, y: 0 }, 25)).toBeNull();
   });
 
-  it("restituisce null se i due punti coincidono, senza dividere per zero", () => {
+  it("returns null if the two points coincide, without dividing by zero", () => {
     expect(pullBack({ x: 10, y: 10 }, { x: 10, y: 10 }, 25)).toBeNull();
   });
 });

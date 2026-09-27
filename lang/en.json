@@ -19,6 +19,11 @@
         "rollFlavor": "Lockpicking Attempt (DC {dc})",
         "success": "{name} picks the lock successfully. The door is now unlocked.",
         "failure": "{name} fails to pick the lock."
+      },
+      "partyEncumbrance": {
+        "title": "Party Stash Encumbrance",
+        "hint": "Items and coins in a Group actor normally weigh on nobody. With this on, the Inventory tab of every Group's sheet gets a distribution menu: the stash weight is split among the members who carry it (equally, by available capacity, or by maximum capacity) and counts toward their encumbrance. Nothing is moved: the share is computed on the fly.",
+        "unsupported": "Party Stash Encumbrance: this dnd5e version does not expose the encumbrance calculation the tool needs, so the tool stays off."
       }
     },
     "settings": {
@@ -98,6 +103,21 @@
       "title": "Surprised by the Ambush?",
       "hint": "These PCs did not notice at least one hidden creature on this scene. Uncheck anyone who should not be surprised, then confirm. Apply this before rolling initiative - dnd5e grants the disadvantage at roll time.",
       "confirm": "Mark as Surprised"
+    },
+    "partyEncumbrance": {
+      "stashWeight": "Stash weight: {weight} {units}",
+      "distribution": "Distribution",
+      "modes": {
+        "none": "None",
+        "equal": "Equal shares",
+        "available": "By available capacity",
+        "maximum": "By maximum capacity"
+      },
+      "carries": "Carries",
+      "notCarrying": "Does not carry",
+      "share": "Stash share: {weight} {units}",
+      "noCarriers": "No carriers: the stash weighs on no one.",
+      "tooltipLine": "Of which {weight} {units} from the stash of {group}"
     }
   }
 }
