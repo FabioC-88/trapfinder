@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the weight stored in a dnd5e Group actor count toward its members' encumbrance, split in one of three GM-chosen modes among the members ticked as carriers.
+**Goal:** Make the weight stored in a dnd5e Group actor count toward its members' encumbrance, split in one of three GM-chosen modes among the members ticked as carriers. First, take the Monster Recognition tool out of the package entirely (backed up outside the repo), since its bestiary content is Wizards of the Coast material that must not ship in a published module.
 
 **Architecture:** A pure core (`allocate.js`, `stash.js`) computes each carrier's share from the Group's stash weight; `refresh.js` keeps a module-level cache of those shares and re-prepares the actors whose share changed; a libWrapper `WRAPPER` on dnd5e's static `AttributesFields.prepareEncumbrance` adds the cached share after the native calculation. UI is injected into the native Group sheet (mode menu, carrier checkboxes) and PC/NPC sheets (tooltip). Nothing is written to the PCs: the only stored data is one flag on the Group.
 
@@ -23,7 +23,8 @@
 - "Available capacity" = `max(0, encumbrance.max − own weight)` (the world uses dnd5e's Standard encumbrance rule).
 - Shares are rounded to 0.1 like dnd5e.
 - The native calculation always runs first; an error in the tool leaves the native encumbrance untouched.
-- New `lang` keys go under `tools.partyEncumbrance` and a new top-level `partyEncumbrance` block placed right after `surprise` — away from the `monsterRecognition.monsters` block that the open `worktree-espansione-database-mostri` branch rewrites, to keep that merge conflict small.
+- New `lang` keys go under `tools.partyEncumbrance` and a new top-level `partyEncumbrance` block placed right after `surprise`.
+- After Task 1 nothing of Monster Recognition may remain in the package: no code, no tests, no strings, no settings, no flags, no docs. The only copy lives in the backup folder outside the repo.
 
 ## Deviations from the spec
 
@@ -37,11 +38,11 @@ Decided while writing this plan; the spec's intent is unchanged.
 
 ## Review Focus
 
-1. A carrier whose `encumbrance.max` is not a finite number (Infinity or NaN from odd data): shares must stay numbers, never NaN. Pinned by the "non-finite capacity" test in Task 2.
-2. A carrier with zero capacity receiving a share: its bar must read full (100%), not NaN. Pinned by the "zero capacity" test in Task 2.
-3. Stale ids left in `excluded` by members who left the Group: they must be ignored silently. Pinned by the "no longer members" test in Task 3.
-4. The Group sheet re-rendering (tab switch, item drop, flag change): the injected controls must never duplicate. Pinned by the re-render manual check in Task 5.
-5. A player looking at the Group sheet: they must not see the share weight of a member they cannot observe (dnd5e already hides that member's stats), and must not be able to change mode or carriers. Pinned by the player manual check in Task 5.
+1. A carrier whose `encumbrance.max` is not a finite number (Infinity or NaN from odd data): shares must stay numbers, never NaN. Pinned by the "non-finite capacity" test in Task 4.
+2. A carrier with zero capacity receiving a share: its bar must read full (100%), not NaN. Pinned by the "zero capacity" test in Task 4.
+3. Stale ids left in `excluded` by members who left the Group: they must be ignored silently. Pinned by the "no longer members" test in Task 5.
+4. The Group sheet re-rendering (tab switch, item drop, flag change): the injected controls must never duplicate. Pinned by the re-render manual check in Task 7.
+5. A player looking at the Group sheet: they must not see the share weight of a member they cannot observe (dnd5e already hides that member's stats), and must not be able to change mode or carriers. Pinned by the player manual check in Task 7.
 
 ## File structure
 
@@ -59,7 +60,338 @@ Decided while writing this plan; the spec's intent is unchanged.
 
 ---
 
-### Task 1: Groundwork — scoped test run, flag key, translation parity test
+### Task 1: Take Monster Recognition out of the package, backed up outside the repo
+
+The Monster Recognition tool ships a bestiary database (creature names and lore descriptions drawn
+from Wizards of the Coast books) that must not be in a module that may be published. It is not
+being developed further for now: the whole tool leaves the package, and a complete copy goes to a
+folder outside the repo so nothing is lost.
+
+**Backup folder:** `C:\Users\cotta\Documents\Repo\trapfinder-monster-recognition-backup` (a sibling
+of the repo, not inside it). If the user picked another location, use theirs everywhere below.
+
+**Files:**
+- Delete: `tools/monster-recognition/` (whole folder, including `monster-list.css`)
+- Delete: `tests/monster-recognition.test.js`, `tests/narrate.test.js`, `tests/statblock.test.js`
+- Delete: `docs/superpowers/specs/2026-09-06-monster-recognition-design.md`,
+  `docs/superpowers/specs/2026-09-07-espansione-database-mostri-design.md`,
+  `docs/superpowers/plans/2026-09-06-monster-recognition.md`,
+  `docs/superpowers/plans/2026-09-07-espansione-database-mostri.md`
+- Modify: `tools/index.js`, `scripts/constants.js`, `module.json`, `lang/en.json`, `lang/it.json`, `README.md`
+
+**Interfaces:**
+- Consumes: nothing.
+- Produces: a package with four tools (passive detection, hidden creatures, lockpicking, and later
+  party encumbrance); `module.json` with an empty `styles` list, which Task 7 fills again; the
+  backup folder described below.
+
+- [ ] **Step 1: Make sure nothing is still writing to the monster branch**
+
+The branch `worktree-espansione-database-mostri`, checked out in
+`.claude/worktrees/espansione-database-mostri`, holds an import of the bestiary that another
+session was running batch by batch. Ask the user to confirm that session is stopped before taking
+the backup, so the backup is not missing a batch in flight. Do not continue without that
+confirmation.
+
+- [ ] **Step 2: Take the backup**
+
+Run from the repo root (Git Bash):
+
+```bash
+BACKUP="/c/Users/cotta/Documents/Repo/trapfinder-monster-recognition-backup"
+WT=".claude/worktrees/espansione-database-mostri"
+BRANCH="worktree-espansione-database-mostri"
+mkdir -p "$BACKUP"/{tool,tests,lang,docs,expanded,worktree-working-files}
+
+# Every branch and commit, including the expanded database: the backup that can restore anything.
+git bundle create "$BACKUP/trapfinder-all-branches.bundle" --all
+git bundle verify "$BACKUP/trapfinder-all-branches.bundle"
+
+# Plain copies of the tool as it is on main, readable without git.
+cp -r tools/monster-recognition "$BACKUP/tool/"
+cp tests/monster-recognition.test.js tests/narrate.test.js tests/statblock.test.js "$BACKUP/tests/"
+cp docs/superpowers/specs/2026-09-06-monster-recognition-design.md \
+   docs/superpowers/specs/2026-09-07-espansione-database-mostri-design.md \
+   docs/superpowers/plans/2026-09-06-monster-recognition.md \
+   docs/superpowers/plans/2026-09-07-espansione-database-mostri.md "$BACKUP/docs/"
+
+# The expanded database as it stands on the import branch.
+git show "$BRANCH:tools/monster-recognition/monsters-data.js" > "$BACKUP/expanded/monsters-data.js"
+git show "$BRANCH:lang/en.json" > "$BACKUP/expanded/en.json"
+git show "$BRANCH:lang/it.json" > "$BACKUP/expanded/it.json"
+git show "$BRANCH:docs/superpowers/plans/monster-batches/needs-review.md" > "$BACKUP/expanded/needs-review.md"
+
+# Untracked working files of the import (extracted pack cache, progress ledger), if present.
+for dir in .monster-pack-cache .superpowers; do
+  [ -d "$WT/$dir" ] && cp -r "$WT/$dir" "$BACKUP/worktree-working-files/"
+done
+```
+
+Then extract the tool's strings from main's translation files into the backup:
+
+```bash
+node -e '
+const fs = require("fs");
+for (const lang of ["en", "it"]) {
+  const root = JSON.parse(fs.readFileSync(`lang/${lang}.json`, "utf8")).DND5E_GM_TOOLKIT;
+  const strings = { tools: { monsterRecognition: root.tools.monsterRecognition }, monsterRecognition: root.monsterRecognition };
+  fs.writeFileSync(process.argv[1] + `/lang/${lang}.json`, JSON.stringify({ DND5E_GM_TOOLKIT: strings }, null, 2) + "\n");
+}' "$BACKUP"
+```
+
+Finally write `$BACKUP/README.md`:
+
+```markdown
+# Monster Recognition — backup
+
+Removed from the trapfinder (GM Toolkit) package on 2026-09-27: its bestiary database holds Wizards
+of the Coast content that must not ship in a published module.
+
+- `trapfinder-all-branches.bundle` — the whole trapfinder repository, every branch, including
+  `worktree-espansione-database-mostri` with the expanded database. Restore with
+  `git clone trapfinder-all-branches.bundle trapfinder-restored`.
+- `tool/`, `tests/`, `docs/` — the tool, its tests and its design docs as they were on `main`.
+- `lang/` — the tool's strings from `lang/en.json` and `lang/it.json` on `main`.
+- `expanded/` — `monsters-data.js`, `en.json`, `it.json` and `needs-review.md` from the import branch.
+- `worktree-working-files/` — untracked files of the import worktree (extracted pack cache, progress
+  ledger), if they existed.
+
+To bring the tool back: copy `tool/monster-recognition` to `tools/`, the tests to `tests/`, merge
+the `lang/` blocks back into the module's translation files, and restore the removed constants
+(`SETTINGS.monsterCatalogMenu`; `FLAGS.monsterKey`, `descriptionOverride`, `skillOverride`,
+`recognizedMonsters`), the `tools/index.js` entry and the `monster-list.css` entry in `module.json`.
+```
+
+- [ ] **Step 3: Verify the backup**
+
+Run:
+
+```bash
+git bundle list-heads "$BACKUP/trapfinder-all-branches.bundle"
+ls -R "$BACKUP" | head -40
+```
+
+Expected: the heads include `refs/heads/main` and `refs/heads/worktree-espansione-database-mostri`;
+the folders `tool/monster-recognition`, `tests`, `docs`, `lang`, `expanded` are populated. Do not go
+on to deleting anything until this is true.
+
+- [ ] **Step 4: Remove the tool's files**
+
+```bash
+git rm -r tools/monster-recognition tests/monster-recognition.test.js tests/narrate.test.js tests/statblock.test.js \
+  docs/superpowers/specs/2026-09-06-monster-recognition-design.md \
+  docs/superpowers/specs/2026-09-07-espansione-database-mostri-design.md \
+  docs/superpowers/plans/2026-09-06-monster-recognition.md \
+  docs/superpowers/plans/2026-09-07-espansione-database-mostri.md
+```
+
+- [ ] **Step 5: Unregister the tool**
+
+In `tools/index.js`, delete the line `import monsterRecognition from "./monster-recognition/index.js";`
+and the `monsterRecognition` entry, so the registry reads:
+
+```js
+export const TOOLS = [
+  passiveDetection,
+  hiddenCreatures,
+  lockpicking
+];
+```
+
+- [ ] **Step 6: Remove its constants**
+
+In `scripts/constants.js`, `SETTINGS` and `FLAGS` become:
+
+```js
+/** World setting keys. */
+export const SETTINGS = {
+  secretDoorDefaultDC: "secretDoorDefaultDC",
+  secretDoorDefaultRange: "secretDoorDefaultRange",
+  creatureDetectionRange: "creatureDetectionRange",
+  screenAlert: "screenAlert",
+  migrationVersion: "migrationVersion"
+};
+
+/** Document flag keys, all under this module's scope. */
+export const FLAGS = {
+  // On a Region behavior and on a secret-door wall: actor ids that have already resolved it.
+  notifiedActorIds: "notifiedActorIds",
+  // On a hidden creature's token: actor ids of the PCs that have spotted it.
+  detectedBy: "detectedBy",
+  // On a secret-door wall: per-door overrides of the world defaults.
+  dc: "dc",
+  range: "range",
+  message: "message"
+};
+```
+
+Flags and the old toggle setting already saved in existing worlds (`monsterKey`,
+`recognizedMonsters`, `trapfinder.monster-recognition`, …) stay behind as inert data: nothing reads
+them any more, and they do no harm.
+
+- [ ] **Step 7: Clean the manifest**
+
+In `module.json`:
+- `"styles"` becomes `"styles": [],` (Task 7 adds the party-encumbrance stylesheet).
+- In `"description"`, replace `detection of hidden creatures with a surprise proposal, lockpicking, and monster recognition.` with `detection of hidden creatures with a surprise proposal, and lockpicking.`
+
+- [ ] **Step 8: Remove its strings**
+
+```bash
+node -e '
+const fs = require("fs");
+for (const lang of ["en", "it"]) {
+  const file = `lang/${lang}.json`;
+  const json = JSON.parse(fs.readFileSync(file, "utf8"));
+  delete json.DND5E_GM_TOOLKIT.tools.monsterRecognition;
+  delete json.DND5E_GM_TOOLKIT.monsterRecognition;
+  fs.writeFileSync(file, JSON.stringify(json, null, 2) + "\n");
+}'
+git diff --stat lang/
+```
+
+Expected: both files show only deletions (the rest of each file already matches 2-space
+`JSON.stringify` formatting; only the removed monsters block was written in a compact style). If
+`git diff lang/` shows changed lines outside the two removed blocks, revert and delete the blocks by
+hand instead.
+
+- [ ] **Step 9: Remove it from the README**
+
+In `README.md`, delete the whole "**Monster Recognition** (`monster-recognition`, …)" bullet, from
+its first line down to and including the paragraph about the active check ("…the compact message
+arrives right away."), so that the "Lockpicking" bullet is followed directly by
+"### Where notifications go".
+
+- [ ] **Step 10: Verify nothing is left**
+
+Run:
+
+```bash
+grep -rniE "monster-recognition|monsterRecognition|monsterCatalogMenu|recognizedMonsters|monsterKey|descriptionOverride|skillOverride|narrate|statblock" \
+  --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.claude . \
+  | grep -v "docs/superpowers/plans/2026-09-27-party-encumbrance.md"
+npm test
+```
+
+Expected: `grep` prints nothing; `npm test` passes with `Test Files  3 passed (3)`,
+`Tests  29 passed (29)` (detection 10, geometry 11, recipients 8). `npm test` is still the plain
+`vitest run` here, so if it also reports files under `.claude/worktrees/`, read only the counts for
+`tests/`; Task 3 scopes the run.
+
+- [ ] **Step 11: Manual check in Foundry**
+
+Reload a world with the module on: no console errors, Configure Settings no longer shows the Monster
+Recognition toggle nor the Monster List button, and passive detection, hidden creatures and
+lockpicking still work.
+
+- [ ] **Step 12: Commit**
+
+```bash
+git add -A tools/index.js scripts/constants.js module.json lang/en.json lang/it.json README.md
+git commit -m "chore: remove Monster Recognition from the package
+
+Its bestiary database holds Wizards of the Coast content that must not
+ship in a module that may be published. A full backup (git bundle of every
+branch plus plain copies) lives outside the repo, in
+trapfinder-monster-recognition-backup."
+```
+
+- [ ] **Step 13: Ask before deleting the import worktree and branch**
+
+The worktree `.claude/worktrees/espansione-database-mostri` and the local branch
+`worktree-espansione-database-mostri` are now only in the way (vitest picks up their tests, and they
+still hold the bestiary). They are in the bundle. **Ask the user** whether to delete them; only on an
+explicit yes, run:
+
+```bash
+git worktree remove --force .claude/worktrees/espansione-database-mostri
+git branch -D worktree-espansione-database-mostri
+```
+
+Do **not** touch anything on GitHub: `origin/main` history and the remote branch
+`claude/monster-recognition-dm-system-itrykb` still contain the tool. Cleaning published history is a
+separate decision for the user (it needs a history rewrite and a force-push), not part of this plan.
+
+---
+
+### Task 2: Remaining test names in English
+
+With the monster-recognition tests gone, the reason for postponing this (merge conflicts with the
+import branch) is gone too. Only the `it(...)` descriptions change; test bodies stay identical.
+
+**Files:**
+- Modify: `tests/detection.test.js`, `tests/geometry.test.js`, `tests/recipients.test.js`
+
+**Interfaces:**
+- Consumes: nothing.
+- Produces: nothing new.
+
+- [ ] **Step 1: Replace the descriptions**
+
+In `tests/detection.test.js`:
+
+| Italian | English |
+|---|---|
+| `salta un rilevabile già visto senza notificare né segnare` | `skips an already-seen detectable without notifying or marking` |
+| `salta un rilevabile fuori raggio senza segnarlo, così resta valutabile più avanti` | `skips an out-of-range detectable without marking it, so it stays checkable later` |
+| `individua quando la passiva eguaglia la CD` | `spots when the passive equals the DC` |
+| `segna come visto anche chi fallisce, per non ripetere la notifica al DM` | `marks as seen even whoever fails, so the GM notification is not repeated` |
+| `salta se la visuale è bloccata e il rilevabile la richiede` | `skips if sight is blocked and the detectable requires it` |
+| `valuta comunque se il rilevabile non richiede visuale` | `still evaluates if the detectable does not require sight` |
+| `usa sightPoint per la visuale e point per la distanza` | `uses sightPoint for sight and point for distance` |
+| `legge la skill indicata dal rilevabile` | `reads the skill named by the detectable` |
+| `tratta una skill assente come passiva 0 invece di esplodere` | `treats a missing skill as passive 0 instead of blowing up` |
+| `valuta più rilevabili nello stesso passaggio` | `evaluates several detectables in the same pass` |
+
+In `tests/geometry.test.js`:
+
+| Italian | English |
+|---|---|
+| `proietta un punto perpendicolare sul segmento` | `projects a point perpendicularly onto the segment` |
+| `si ferma all'estremo A per un punto oltre A` | `stops at end A for a point beyond A` |
+| `si ferma all'estremo B per un punto oltre B` | `stops at end B for a point beyond B` |
+| `restituisce A per un segmento degenere, senza dividere per zero` | `returns A for a degenerate segment, without dividing by zero` |
+| `restituisce il punto stesso se è dentro` | `returns the point itself if it is inside` |
+| `blocca su un lato per un punto fuori su un solo asse` | `clamps to a side for a point outside on one axis only` |
+| `blocca su uno spigolo per un punto fuori in diagonale` | `clamps to a corner for a point outside diagonally` |
+| `arretra il punto verso l'osservatore della distanza chiesta` | `pulls the point back toward the observer by the requested distance` |
+| `arretra correttamente anche in diagonale` | `pulls back correctly on a diagonal too` |
+| `restituisce null se l'osservatore è più vicino della distanza di arretramento` | `returns null if the observer is closer than the pull-back distance` |
+| `restituisce null se i due punti coincidono, senza dividere per zero` | `returns null if the two points coincide, without dividing by zero` |
+
+In `tests/recipients.test.js`:
+
+| Italian | English |
+|---|---|
+| `manda un fallimento solo al DM, mai al giocatore` | `sends a failure only to the GM, never to the player` |
+| `manda una riuscita al proprietario e al DM` | `sends a success to the owner and to the GM` |
+| `manda il toast solo ai proprietari connessi` | `sends the toast only to connected owners` |
+| `non manda toast al DM, che il messaggio lo vede già in chat` | `sends no toast to the GM, who already sees the message in chat` |
+| `non manda alcun toast se l'impostazione è spenta` | `sends no toast at all if the setting is off` |
+| `con un PG senza proprietario avvisa solo il DM, senza rompersi` | `with an ownerless PC notifies only the GM, without breaking` |
+| `non duplica un DM che è anche proprietario del PG` | `does not duplicate a GM who also owns the PC` |
+| `avvisa tutti i DM presenti, non solo il primo` | `notifies every GM present, not only the first` |
+
+- [ ] **Step 2: Verify no Italian is left in the tests**
+
+Run: `grep -nE "[àèéìòù]|\b(il|della|che|per|non|una|salta|restituisce|manda)\b" tests/*.js`
+Expected: no output.
+
+- [ ] **Step 3: Run the tests**
+
+Run: `npm test`
+Expected: PASS, `Tests  29 passed (29)` in `tests/` — same count, only names changed.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/detection.test.js tests/geometry.test.js tests/recipients.test.js
+git commit -m "test: translate the remaining test names to English"
+```
+
+---
+
+### Task 3: Groundwork — scoped test run, flag key, translation parity test
 
 **Files:**
 - Modify: `package.json`
@@ -84,11 +416,11 @@ In `package.json`, replace the `scripts` block with:
 - [ ] **Step 2: Check the baseline**
 
 Run: `npm test`
-Expected: `Test Files  6 passed (6)` and `Tests  83 passed (83)`. If the numbers differ, note the real baseline and add to it in every later "Expected" line.
+Expected: `Test Files  3 passed (3)` and `Tests  29 passed (29)` (after Task 1 removed the three monster-recognition test files). If the numbers differ, note the real baseline and add to it in every later "Expected" line.
 
 - [ ] **Step 3: Add the flag key**
 
-In `scripts/constants.js`, add as the last entry of `FLAGS` (after `recognizedMonsters`, keeping a comma after it):
+In `scripts/constants.js`, add as the last entry of `FLAGS` (after `message`, adding a comma after it):
 
 ```js
   // On a Group actor: how its stash weight is shared among members, and who is excluded.
@@ -129,7 +461,7 @@ describe("translations", () => {
 - [ ] **Step 5: Run the tests**
 
 Run: `npm test`
-Expected: PASS, `Tests  85 passed (85)`. The two files are already aligned (232 keys each), so this test is a guard for the tasks that follow, not a red-green cycle. To see it bite, temporarily delete one key from `lang/it.json`, run `npm test`, see it FAIL naming that key, then restore the file.
+Expected: PASS, `Tests  31 passed (31)`. The two files are already aligned (Task 1 removed the same blocks from both), so this test is a guard for the tasks that follow, not a red-green cycle. To see it bite, temporarily delete one key from `lang/it.json`, run `npm test`, see it FAIL naming that key, then restore the file.
 
 - [ ] **Step 6: Commit**
 
@@ -140,7 +472,7 @@ git commit -m "test: scope vitest to tests/ and guard en/it translation parity"
 
 ---
 
-### Task 2: Share math — `allocate`, `mergeShares`, `changedIds`, `applyShare`
+### Task 4: Share math — `allocate`, `mergeShares`, `changedIds`, `applyShare`
 
 **Files:**
 - Create: `tools/party-encumbrance/allocate.js`
@@ -409,7 +741,7 @@ export function applyShare(encumbrance, entry) {
 - [ ] **Step 4: Run the tests and verify they pass**
 
 Run: `npm test`
-Expected: PASS, `Tests  101 passed (101)` (85 + 16)
+Expected: PASS, `Tests  47 passed (47)` (31 + 16)
 
 - [ ] **Step 5: Commit**
 
@@ -420,7 +752,7 @@ git commit -m "feat(party-encumbrance): share math for the party stash, with tes
 
 ---
 
-### Task 3: Stash weight, flag sanitizing, carrier filtering
+### Task 5: Stash weight, flag sanitizing, carrier filtering
 
 **Files:**
 - Create: `tools/party-encumbrance/stash.js`
@@ -611,7 +943,7 @@ export function formatWeight(value) {
 - [ ] **Step 4: Run the tests and verify they pass**
 
 Run: `npm test`
-Expected: PASS, `Tests  111 passed (111)` (101 + 10)
+Expected: PASS, `Tests  57 passed (57)` (47 + 10)
 
 - [ ] **Step 5: Commit**
 
@@ -622,7 +954,7 @@ git commit -m "feat(party-encumbrance): stash weight, flag defaults and carrier 
 
 ---
 
-### Task 4: Wire it into dnd5e — wrapper, recompute, tool registration
+### Task 6: Wire it into dnd5e — wrapper, recompute, tool registration
 
 After this task the feature works end to end without any UI: the mode is set from the console, and bars and statuses change.
 
@@ -634,8 +966,8 @@ After this task the feature works end to end without any UI: the mode is set fro
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `allocate`, `mergeShares`, `changedIds`, `applyShare` (Task 2); `readConfig`, `eligibleCarriers`, `groupStashWeight`, `CARRIER_TYPES` (Task 3); `FLAGS.partyEncumbrance` (Task 1).
-- Produces: `getShare(actorId: string) -> ShareEntry | undefined` and `registerRefreshHooks(moduleId)` from `refresh.js`; `registerEncumbranceWrapper(moduleId)` from `encumbrance-wrapper.js`; the tool descriptor with id `party-encumbrance`. Tasks 5 and 6 read `getShare` and `actor.system.attributes.encumbrance.stash`.
+- Consumes: `allocate`, `mergeShares`, `changedIds`, `applyShare` (Task 4); `readConfig`, `eligibleCarriers`, `groupStashWeight`, `CARRIER_TYPES` (Task 5); `FLAGS.partyEncumbrance` (Task 3).
+- Produces: `getShare(actorId: string) -> ShareEntry | undefined` and `registerRefreshHooks(moduleId)` from `refresh.js`; `registerEncumbranceWrapper(moduleId)` from `encumbrance-wrapper.js`; the tool descriptor with id `party-encumbrance`. Tasks 7 and 8 read `getShare` and `actor.system.attributes.encumbrance.stash`.
 
 - [ ] **Step 1: Write the share cache and the recompute**
 
@@ -826,7 +1158,7 @@ export default {
 
 - [ ] **Step 4: Register the tool**
 
-In `tools/index.js`, add the import after the `monsterRecognition` one and append the tool to `TOOLS`:
+In `tools/index.js`, add the import after the `lockpicking` one and append the tool to `TOOLS`:
 
 ```js
 import partyEncumbrance from "./party-encumbrance/index.js";
@@ -837,14 +1169,13 @@ export const TOOLS = [
   passiveDetection,
   hiddenCreatures,
   lockpicking,
-  monsterRecognition,
   partyEncumbrance
 ];
 ```
 
 - [ ] **Step 5: Add the tool's strings**
 
-In `lang/en.json`, inside `DND5E_GM_TOOLKIT.tools`, after the `monsterRecognition` entry (add a comma after its closing brace):
+In `lang/en.json`, inside `DND5E_GM_TOOLKIT.tools`, after the `lockpicking` entry (add a comma after its closing brace):
 
 ```json
       "partyEncumbrance": {
@@ -867,7 +1198,7 @@ In `lang/it.json`, in the same position:
 - [ ] **Step 6: Run the tests**
 
 Run: `npm test`
-Expected: PASS, `Tests  111 passed (111)`. No new unit test: these files touch `game`, `Hooks` and dnd5e documents, so they are checked in Foundry. The parity test from Task 1 covers the new strings.
+Expected: PASS, `Tests  57 passed (57)`. No new unit test: these files touch `game`, `Hooks` and dnd5e documents, so they are checked in Foundry. The parity test from Task 3 covers the new strings.
 
 - [ ] **Step 7: Manual check in Foundry (GM, then a player)**
 
@@ -913,7 +1244,7 @@ git commit -m "feat(party-encumbrance): add the stash share to members' encumbra
 
 ---
 
-### Task 5: Group sheet controls
+### Task 7: Group sheet controls
 
 **Files:**
 - Create: `tools/party-encumbrance/group-sheet.js`
@@ -923,8 +1254,8 @@ git commit -m "feat(party-encumbrance): add the stash share to members' encumbra
 - Modify: `lang/en.json`, `lang/it.json`
 
 **Interfaces:**
-- Consumes: `getShare` (Task 4); `readConfig`, `eligibleCarriers`, `groupStashWeight`, `unitsLabel`, `formatWeight`, `CARRIER_TYPES` (Task 3); `FLAGS.partyEncumbrance` (Task 1).
-- Produces: `registerGroupSheetControls(moduleId)`; the `DND5E_GM_TOOLKIT.partyEncumbrance.*` strings that Task 6 also uses (`tooltipLine`).
+- Consumes: `getShare` (Task 6); `readConfig`, `eligibleCarriers`, `groupStashWeight`, `unitsLabel`, `formatWeight`, `CARRIER_TYPES` (Task 5); `FLAGS.partyEncumbrance` (Task 3).
+- Produces: `registerGroupSheetControls(moduleId)`; the `DND5E_GM_TOOLKIT.partyEncumbrance.*` strings that Task 8 also uses (`tooltipLine`).
 
 dnd5e's Group sheet (ApplicationV2, class `GroupActorSheet`, hook `renderGroupActorSheet(app, element)`) renders its Inventory tab as `section.tab[data-tab="inventory"]` with a `.sidebar` of member cards `.encumbrance.card[data-uuid]` (each with a `.pane`) and a `.body` holding the inventory list.
 
@@ -1053,11 +1384,10 @@ Create `tools/party-encumbrance/party-encumbrance.css`:
 }
 ```
 
-In `module.json`, extend `styles`:
+In `module.json`, fill the `styles` list that Task 1 left empty:
 
 ```json
   "styles": [
-    "tools/monster-recognition/monster-list.css",
     "tools/party-encumbrance/party-encumbrance.css"
   ],
 ```
@@ -1121,7 +1451,7 @@ In `lang/it.json`, in the same position:
 - [ ] **Step 5: Run the tests**
 
 Run: `npm test`
-Expected: PASS, `Tests  111 passed (111)` (the parity test covers the new keys)
+Expected: PASS, `Tests  57 passed (57)` (the parity test covers the new keys)
 
 - [ ] **Step 6: Manual check in Foundry**
 
@@ -1139,14 +1469,14 @@ git commit -m "feat(party-encumbrance): distribution menu and carriers on the Gr
 
 ---
 
-### Task 6: Tooltip on PC and NPC sheets
+### Task 8: Tooltip on PC and NPC sheets
 
 **Files:**
 - Create: `tools/party-encumbrance/actor-sheet.js`
 - Modify: `tools/party-encumbrance/index.js`
 
 **Interfaces:**
-- Consumes: `actor.system.attributes.encumbrance.stash` (Task 2 via Task 4); `unitsLabel`, `formatWeight` (Task 3); the `tooltipLine` string (Task 5).
+- Consumes: `actor.system.attributes.encumbrance.stash` (Task 4 via Task 6); `unitsLabel`, `formatWeight` (Task 5); the `tooltipLine` string (Task 7).
 - Produces: `registerActorSheetTooltip()`.
 
 On dnd5e's character sheet (`renderCharacterActorSheet`) the bar sits in `.encumbrance.card` of the Inventory tab; on the NPC sheet (`renderNPCActorSheet`) in `.bottom .encumbrance`. Both are rendered by the shared partial as `[role="meter"]`.
@@ -1200,7 +1530,7 @@ and at the end of `onReady(moduleId)`:
 - [ ] **Step 3: Run the tests**
 
 Run: `npm test`
-Expected: PASS, `Tests  111 passed (111)`
+Expected: PASS, `Tests  57 passed (57)`
 
 - [ ] **Step 4: Manual check in Foundry**
 
@@ -1219,7 +1549,7 @@ git commit -m "feat(party-encumbrance): tooltip explaining the stash share on PC
 
 ---
 
-### Task 7: Documentation and final check
+### Task 9: Documentation and final check
 
 **Files:**
 - Modify: `README.md`
@@ -1230,7 +1560,7 @@ git commit -m "feat(party-encumbrance): tooltip explaining the stash share on PC
 
 - [ ] **Step 1: Add the tool to the README**
 
-In `README.md`, section "Available tools", add after the Monster Recognition entry (before "### Where notifications go"):
+In `README.md`, section "Available tools", add after the Lockpicking entry (before "### Where notifications go"):
 
 ```markdown
 - **Party Stash Encumbrance** (`party-encumbrance`, off by default) — dnd5e gives a **Group** actor
@@ -1248,7 +1578,7 @@ In `README.md`, section "Available tools", add after the Monster Recognition ent
 - [ ] **Step 2: Run the full suite**
 
 Run: `npm test`
-Expected: PASS, `Test Files  9 passed (9)`, `Tests  111 passed (111)`
+Expected: PASS, `Test Files  6 passed (6)`, `Tests  57 passed (57)`
 
 - [ ] **Step 3: Full manual check in Foundry (spec checklist)**
 

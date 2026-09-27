@@ -300,6 +300,6 @@ Manual in Foundry (checklist in the plan):
 - Entry in the README under "Available tools".
 - `tools/index.js`: import and register the tool.
 - The release workflow zips the whole `tools/` folder: no change needed.
-- Heads-up for merging: the `worktree-espansione-database-mostri` branch rewrites large parts of
-  `lang/en.json` and `lang/it.json` (the monsters block). Add the `partyEncumbrance` keys under
-  `tools`, away from that block, to keep the merge conflict small.
+- Before this tool lands, Monster Recognition is taken out of the package (backed up outside the
+  repo): its bestiary content is Wizards of the Coast material that must not ship in a module that
+  may be published. The implementation plan does this as its first task.
